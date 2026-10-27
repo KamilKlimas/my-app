@@ -14,6 +14,10 @@ abstract class AppController
             throw new \RuntimeException('View not found: ' . $template);
         }
 
+        $variables += [
+            'e' => static fn (mixed $value): string => htmlspecialchars((string) $value),
+        ];
+
         extract($variables, EXTR_SKIP);
         require $templatePath;
     }

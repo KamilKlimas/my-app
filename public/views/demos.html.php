@@ -85,12 +85,12 @@
                         <?php $playedAt = new DateTimeImmutable($demo['playedAt']); ?>
                         <tr class="table__row<?= $demo['status'] === 'processing' ? ' is-processing' : '' ?>">
                             <th scope="row"><code class="chip"><?= $e($demo['map']) ?></code></th>
-                            <td>
+                            <td data-label="Played">
                                 <time datetime="<?= $e($playedAt->format('Y-m-d\TH:i')) ?>">
                                     <?= $e($playedAt->format('M j, H:i')) ?>
                                 </time>
                             </td>
-                            <td>
+                            <td data-label="Score">
                                 <?php if ($demo['score'] !== null): ?>
                                     <span class="score">
                                         <?= (int) $demo['score'][0] ?>&ndash;<?= (int) $demo['score'][1] ?>
@@ -104,8 +104,8 @@
                                     &mdash;
                                 <?php endif; ?>
                             </td>
-                            <td class="table__lost"><?= $demo['lostDuels'] !== null ? (int) $demo['lostDuels'] : '&mdash;' ?></td>
-                            <td>
+                            <td class="table__lost" data-label="Lost duels"><?= $demo['lostDuels'] !== null ? (int) $demo['lostDuels'] : '&mdash;' ?></td>
+                            <td data-label="Status">
                                 <?php if ($demo['status'] === 'ready'): ?>
                                     <strong class="status status--ready">Ready</strong>
                                 <?php elseif ($demo['status'] === 'processing'): ?>

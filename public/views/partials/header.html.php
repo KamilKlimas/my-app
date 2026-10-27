@@ -28,6 +28,7 @@ if ($user !== null && $user['role'] === 'ADMIN') {
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/demos.css">
     <link rel="stylesheet" href="/css/states.css">
+    <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
     <aside class="topbar" aria-label="System status">

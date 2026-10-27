@@ -64,10 +64,12 @@
             </aside>
         </div>
 
-        <section aria-labelledby="recent-heading">
-            <h2 id="recent-heading">Recent demos</h2>
-            <p>Status refreshes automatically</p>
-            <table>
+        <section class="recent" aria-labelledby="recent-heading">
+            <div class="recent__header">
+                <h2 id="recent-heading">Recent demos</h2>
+                <p class="recent__note">Status refreshes automatically</p>
+            </div>
+            <table class="table">
                 <thead>
                     <tr>
                         <th scope="col">Map</th>
@@ -75,14 +77,14 @@
                         <th scope="col">Score</th>
                         <th scope="col">Lost duels</th>
                         <th scope="col">Status</th>
-                        <th scope="col">Action</th>
+                        <th scope="col" class="table__cell--action">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($demos as $demo): ?>
                         <?php $playedAt = new DateTimeImmutable($demo['playedAt']); ?>
-                        <tr>
-                            <th scope="row"><code><?= $e($demo['map']) ?></code></th>
+                        <tr class="table__row<?= $demo['status'] === 'processing' ? ' is-processing' : '' ?>">
+                            <th scope="row"><code class="chip"><?= $e($demo['map']) ?></code></th>
                             <td>
                                 <time datetime="<?= $e($playedAt->format('Y-m-d\TH:i')) ?>">
                                     <?= $e($playedAt->format('M j, H:i')) ?>
@@ -90,39 +92,40 @@
                             </td>
                             <td>
                                 <?php if ($demo['score'] !== null): ?>
-                                    <?= (int) $demo['score'][0] ?>&ndash;<?= (int) $demo['score'][1] ?>
-                                    <?php if ($demo['score'][0] > $demo['score'][1]): ?>
-                                        <abbr title="Win">W</abbr>
-                                    <?php else: ?>
-                                        <abbr title="Loss">L</abbr>
-                                    <?php endif; ?>
+                                    <span class="score">
+                                        <?= (int) $demo['score'][0] ?>&ndash;<?= (int) $demo['score'][1] ?>
+                                        <?php if ($demo['score'][0] > $demo['score'][1]): ?>
+                                            <abbr class="badge badge--win" title="Win">W</abbr>
+                                        <?php else: ?>
+                                            <abbr class="badge badge--loss" title="Loss">L</abbr>
+                                        <?php endif; ?>
+                                    </span>
                                 <?php else: ?>
                                     &mdash;
                                 <?php endif; ?>
                             </td>
-                            <td><?= $demo['lostDuels'] !== null ? (int) $demo['lostDuels'] : '&mdash;' ?></td>
+                            <td class="table__lost"><?= $demo['lostDuels'] !== null ? (int) $demo['lostDuels'] : '&mdash;' ?></td>
                             <td>
                                 <?php if ($demo['status'] === 'ready'): ?>
-                                    <strong>Ready</strong>
+                                    <strong class="status status--ready">Ready</strong>
                                 <?php elseif ($demo['status'] === 'processing'): ?>
-                                    <strong>Parsing ticks [<?= (int) $demo['progress'] ?>%]</strong>
-                                    <progress value="<?= (int) $demo['progress'] ?>" max="100">
+                                    <strong class="status status--processing">Parsing ticks [<?= (int) $demo['progress'] ?>%]</strong>
+                                    <progress class="progress progress--inline" value="<?= (int) $demo['progress'] ?>" max="100">
                                         <?= (int) $demo['progress'] ?>%
                                     </progress>
                                 <?php else: ?>
-                                    <strong>Failed: <?= $e($demo['error']) ?></strong>
-                                    <br>
-                                    <small><?= $e($demo['errorDetail']) ?></small>
+                                    <strong class="status status--failed">Failed: <?= $e($demo['error']) ?></strong>
+                                    <small class="table__detail"><?= $e($demo['errorDetail']) ?></small>
                                 <?php endif; ?>
                             </td>
-                            <td>
+                            <td class="table__cell--action">
                                 <?php if ($demo['status'] === 'ready'): ?>
-                                    <a href="/demos/<?= (int) $demo['id'] ?>">View duels</a>
+                                    <a class="table__action" href="/demos/<?= (int) $demo['id'] ?>">View duels</a>
                                 <?php elseif ($demo['status'] === 'processing'): ?>
-                                    <em>Parsing ticks...</em>
+                                    <em class="table__action table__action--muted">Parsing ticks...</em>
                                 <?php else: ?>
                                     <form method="post" action="/demos/<?= (int) $demo['id'] ?>/delete">
-                                        <button type="submit">Remove</button>
+                                        <button type="submit" class="table__action table__action--danger">Remove</button>
                                     </form>
                                 <?php endif; ?>
                             </td>

@@ -1,0 +1,40 @@
+:root {
+  --color-bg: #0b1118;
+  --color-bg-deep: #080b0f;
+  --color-surface: #101821;
+  --color-surface-raised: #161e28;
+  --color-border: #1f2a37;
+  --color-border-strong: #2b3a4b;
+  --color-text: #e6ebf0;
+  --color-muted: #8896a6;
+  --color-accent: #f5a30f;
+  --color-accent-ink: #1a1203;
+  --color-danger: #ef4a4a;
+  --color-success: #2fbf71;
+  --color-info: #4aa3ff;
+
+  --font-heading: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "Barlow", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+
+  --text-xs: 0.6875rem;
+  --text-sm: 0.8125rem;
+  --text-md: 0.9375rem;
+  --text-lg: 1.25rem;
+  --text-xl: 2rem;
+  --text-display: 3.25rem;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --border-width: 1px;
+  --radius-sm: 3px;
+  --radius-md: 6px;
+  --page-max-width: 80rem;
+  --page-gutter: var(--space-5);
+}

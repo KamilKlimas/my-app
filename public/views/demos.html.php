@@ -1,66 +1,68 @@
 <?php require __DIR__ . '/partials/header.html.php'; ?>
 
-    <main>
-        <header>
-            <p>Combat telemetry // Replay vault</p>
-            <h1>My demos</h1>
-            <p>Upload a CS2 demo &mdash; DuelLab finds the duels you lost, tells you why, and turns them into practice scenarios.</p>
-            <a href="/training">Open training set</a>
+    <main class="page">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">Combat telemetry // Replay vault</p>
+                <h1 class="page-title">My demos</h1>
+                <p class="page-lead">Upload a CS2 demo &mdash; DuelLab finds the duels you lost, tells you why, and turns them into practice scenarios.</p>
+            </div>
+            <a class="page-header__link" href="/training">Open training set</a>
         </header>
 
-        <section aria-labelledby="stats-heading">
-            <h2 id="stats-heading">Summary</h2>
-            <dl>
-                <div>
-                    <dt>Demos analysed</dt>
-                    <dd><?= $e($stats['demosAnalysed']) ?></dd>
-                    <dd>recorded</dd>
+        <section class="stats" aria-labelledby="stats-heading">
+            <h2 id="stats-heading" class="visually-hidden">Summary</h2>
+            <dl class="stats__list">
+                <div class="stat">
+                    <dt class="stat__label">Demos analysed</dt>
+                    <dd class="stat__value"><?= $e($stats['demosAnalysed']) ?></dd>
+                    <dd class="stat__note">recorded</dd>
                 </div>
-                <div>
-                    <dt>Lost duels found</dt>
-                    <dd><?= $e($stats['lostDuels']) ?></dd>
-                    <dd>total engaged</dd>
+                <div class="stat stat--danger">
+                    <dt class="stat__label">Lost duels found</dt>
+                    <dd class="stat__value"><?= $e($stats['lostDuels']) ?></dd>
+                    <dd class="stat__note">total engaged</dd>
                 </div>
-                <div>
-                    <dt>Trainable duels</dt>
-                    <dd><?= $e($stats['trainableDuels']) ?></dd>
-                    <dd><?= $e($stats['convertedPercent']) ?>% converted</dd>
+                <div class="stat stat--accent">
+                    <dt class="stat__label">Trainable duels</dt>
+                    <dd class="stat__value"><?= $e($stats['trainableDuels']) ?></dd>
+                    <dd class="stat__note"><?= $e($stats['convertedPercent']) ?>% converted</dd>
                 </div>
-                <div>
-                    <dt>Top issue</dt>
-                    <dd><?= $e($stats['topIssue']['label']) ?></dd>
-                    <dd><?= $e($stats['topIssue']['share']) ?>% of lost duels</dd>
+                <div class="stat stat--issue">
+                    <dt class="stat__label">Top issue</dt>
+                    <dd class="stat__value stat__value--text"><?= $e($stats['topIssue']['label']) ?></dd>
+                    <dd class="stat__note"><?= $e($stats['topIssue']['share']) ?>% of lost duels</dd>
                 </div>
             </dl>
         </section>
 
-        <section aria-labelledby="upload-heading">
-            <h2 id="upload-heading">Upload a demo</h2>
-            <form method="post" action="/demos" enctype="multipart/form-data">
-                <p>
-                    <label for="demo-file">Drop a <code>.dem</code> file here or browse</label>
-                    <input type="file" id="demo-file" name="demo" accept=".dem" required>
-                </p>
-                <p>CS2 demos only &middot; max 300 MB &middot; checked on the server before processing</p>
-                <button type="submit">Upload</button>
-            </form>
+        <div class="split">
+            <section class="panel" aria-labelledby="upload-heading">
+                <h2 id="upload-heading" class="panel__title">Upload a demo</h2>
+                <form class="dropzone" method="post" action="/demos" enctype="multipart/form-data">
+                    <label class="dropzone__label" for="demo-file">Drop a <code>.dem</code> file here or browse</label>
+                    <input class="dropzone__input" type="file" id="demo-file" name="demo" accept=".dem" required>
+                    <p class="dropzone__hint">CS2 demos only &middot; max 300 MB &middot; checked on the server before processing</p>
+                    <button class="button" type="submit">Upload</button>
+                </form>
 
-            <?php if ($upload !== null): ?>
-                <p>
-                    <label for="upload-progress"><?= $e($upload['file']) ?> &mdash; uploading...</label>
-                    <progress id="upload-progress" value="<?= (int) $upload['progress'] ?>" max="100">
-                        <?= (int) $upload['progress'] ?>%
-                    </progress>
-                </p>
-            <?php endif; ?>
-        </section>
+                <?php if ($upload !== null): ?>
+                    <p class="upload-progress">
+                        <label class="upload-progress__label" for="upload-progress"><?= $e($upload['file']) ?> &mdash; uploading...</label>
+                        <progress class="progress" id="upload-progress" value="<?= (int) $upload['progress'] ?>" max="100">
+                            <?= (int) $upload['progress'] ?>%
+                        </progress>
+                    </p>
+                <?php endif; ?>
+            </section>
 
-        <aside aria-labelledby="auto-import-heading">
-            <h2 id="auto-import-heading">Auto-import from your replays folder</h2>
-            <p>Point DuelLab at the CS2 replays folder once. New demos are picked up whenever this tab is open (Chrome / Edge).</p>
-            <button type="button">Choose folder</button>
-            <p><small>Other browsers: drag the file in manually.</small></p>
-        </aside>
+            <aside class="panel" aria-labelledby="auto-import-heading">
+                <h2 id="auto-import-heading" class="panel__title panel__title--info">Auto-import from your replays folder</h2>
+                <p class="panel__text">Point DuelLab at the CS2 replays folder once. New demos are picked up whenever this tab is open (Chrome / Edge).</p>
+                <button class="button button--ghost" type="button">Choose folder</button>
+                <p class="panel__note"><small>Other browsers: drag the file in manually.</small></p>
+            </aside>
+        </div>
 
         <section aria-labelledby="recent-heading">
             <h2 id="recent-heading">Recent demos</h2>

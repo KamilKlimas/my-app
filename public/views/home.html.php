@@ -7,7 +7,8 @@
 </head>
 <body>
     <main>
-        <h1>Strona główna</h1>
+        <h1><?= htmlspecialchars($pageTitle) ?></h1>
+        <p><?= htmlspecialchars($welcomeMessage) ?></p>
         <a href="/projects">Zobacz projekty</a>
     </main>
 </body>

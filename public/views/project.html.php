@@ -7,7 +7,9 @@
 </head>
 <body>
     <main>
-        <h1>Projekt nr <?= $projectId ?></h1>
+        <h1><?= htmlspecialchars($projectName) ?></h1>
+        <p>Projekt nr <?= (int) $projectId ?></p>
+        <a href="/projects">Wróć do listy projektów</a>
     </main>
 </body>
 </html>

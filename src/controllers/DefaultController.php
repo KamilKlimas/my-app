@@ -10,6 +10,7 @@ final class DefaultController extends AppController
     {
         $this->render('home', [
             'pageTitle' => 'Strona główna',
+            'welcomeMessage' => 'Witaj w aplikacji do zarządzania projektami.',
         ]);
     }
 

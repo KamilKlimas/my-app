@@ -1,0 +1,84 @@
+a,
+button,
+.dropzone,
+.table__row {
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.main-nav__link:hover {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.main-nav__link[aria-current="page"]:hover {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.lang-switch__button:hover:not([aria-pressed="true"]),
+.icon-button:hover {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.link-button:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.page-header__link:hover {
+  color: var(--color-accent);
+}
+
+.button:hover {
+  background: color-mix(in srgb, var(--color-accent) 80%, white);
+  border-color: color-mix(in srgb, var(--color-accent) 80%, white);
+}
+
+.button--ghost:hover {
+  background: transparent;
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.dropzone:hover,
+.dropzone:focus-within {
+  background: var(--color-surface-raised);
+  border-color: var(--color-accent);
+}
+
+.dropzone__input::file-selector-button:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.table__row:hover {
+  background: var(--color-surface);
+}
+
+.table__action:hover {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.table__action--danger:hover {
+  color: color-mix(in srgb, var(--color-danger) 70%, white);
+}

@@ -1,0 +1,115 @@
+@media (max-width: 48rem) {
+  :root {
+    --page-gutter: var(--space-4);
+    --text-display: 2.5rem;
+  }
+
+  .page {
+    gap: var(--space-5);
+    padding-top: var(--space-5);
+  }
+
+  .site-header__inner {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .site-header__tools {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .user-chip__role {
+    display: none;
+  }
+
+  .main-nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+
+  .main-nav__list {
+    overflow-x: auto;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .stats__list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .stat__value--text {
+    font-size: var(--text-md);
+  }
+
+  .split {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .dropzone {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .table,
+  .table tbody,
+  .table tr,
+  .table th,
+  .table td {
+    display: block;
+  }
+
+  .table__row {
+    margin-bottom: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+  }
+
+  .table th,
+  .table td {
+    padding: var(--space-2) 0;
+    border-bottom: 0;
+  }
+
+  .table td[data-label] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--color-muted);
+    font-size: var(--text-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .table .table__cell--action {
+    margin-top: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: var(--border-width) solid var(--color-border);
+    text-align: left;
+  }
+
+  .recent__header {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}

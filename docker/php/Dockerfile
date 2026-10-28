@@ -35,3 +35,9 @@ RUN { \
     } > /usr/local/etc/php/conf.d/mealplanner.ini
 
 COPY . .
+
+RUN composer install --no-interaction --no-progress --optimize-autoloader
+
+COPY docker/php/entrypoint.sh /usr/local/bin/app-entrypoint.sh
+ENTRYPOINT ["sh", "/usr/local/bin/app-entrypoint.sh"]
+CMD ["php-fpm"]

@@ -5,3 +5,6 @@
 vendor/
 node_modules/
 docker/data/
+
+CLAUDE.local.md
+.claude/settings.local.json

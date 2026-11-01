@@ -1,19 +1,28 @@
-.topbar {
+.topbar,
+.site-header,
+.site-footer {
   background: var(--color-bg-deep);
-  border-bottom: var(--border-width) solid var(--color-border);
-  font: 600 var(--text-xs) / 1 var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+}
+
+.topbar__list,
+.site-header__inner,
+.site-footer__inner {
+  display: flex;
+  max-width: var(--page-max-width);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--color-border);
   color: var(--color-muted);
+  font: 0.6875rem var(--font-mono);
+  text-transform: uppercase;
 }
 
 .topbar__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-5);
-  max-width: var(--page-max-width);
-  margin: 0 auto;
-  padding: var(--space-2) var(--page-gutter);
+  gap: var(--space-5);
+  margin-block: 0;
   list-style: none;
 }
 
@@ -22,17 +31,12 @@
 }
 
 .site-header {
-  background: var(--color-bg-deep);
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .site-header__inner {
-  display: flex;
   align-items: center;
   gap: var(--space-5);
-  max-width: var(--page-max-width);
-  margin: 0 auto;
-  padding: var(--space-3) var(--page-gutter);
 }
 
 .brand {
@@ -43,19 +47,8 @@
 }
 
 .brand__name {
-  font: 800 1.5rem / 1 var(--font-heading);
-  letter-spacing: 0.04em;
+  font: 800 1.5rem var(--font-heading);
   text-transform: uppercase;
-}
-
-.brand__name::before {
-  content: "";
-  display: inline-block;
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-right: var(--space-3);
-  border: 2px solid var(--color-accent);
-  transform: rotate(45deg);
 }
 
 .brand__accent {
@@ -63,11 +56,9 @@
 }
 
 .brand__tag {
-  margin-left: 1.25rem;
-  font: 600 var(--text-xs) / 1.2 var(--font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   color: var(--color-muted);
+  font: 0.6875rem var(--font-mono);
+  text-transform: uppercase;
 }
 
 .menu-toggle {
@@ -85,19 +76,15 @@
 .main-nav__link {
   display: block;
   padding: var(--space-2) var(--space-4);
-  border: var(--border-width) solid transparent;
   border-bottom: 2px solid transparent;
-  border-radius: var(--radius-sm);
   color: var(--color-muted);
-  font: 700 var(--text-sm) / 1 var(--font-heading);
+  font: 700 0.8125rem var(--font-heading);
   letter-spacing: 0.1em;
   text-decoration: none;
   text-transform: uppercase;
 }
 
 .main-nav__link[aria-current="page"] {
-  background: var(--color-surface);
-  border-color: var(--color-border);
   border-bottom-color: var(--color-accent);
   color: var(--color-accent);
 }
@@ -110,74 +97,52 @@
 }
 
 .site-footer {
-  background: var(--color-bg-deep);
-  border-top: var(--border-width) solid var(--color-border);
+  border-top: 1px solid var(--color-border);
   color: var(--color-muted);
-  font: 400 var(--text-xs) / 1.4 var(--font-mono);
+  font: 0.6875rem var(--font-mono);
 }
 
 .site-footer__inner {
-  display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--space-2);
-  max-width: var(--page-max-width);
-  margin: 0 auto;
-  padding: var(--space-4) var(--page-gutter);
 }
 
 .page {
   display: grid;
   gap: var(--space-6);
-  width: 100%;
   max-width: var(--page-max-width);
   margin: 0 auto;
-  padding: var(--space-6) var(--page-gutter) var(--space-7);
+  padding: var(--space-6) var(--space-5);
 }
 
 .page-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--space-5);
   padding-bottom: var(--space-5);
-  border-bottom: var(--border-width) solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .eyebrow {
   margin-bottom: var(--space-2);
   color: var(--color-accent);
-  font: 600 var(--text-xs) / 1 var(--font-mono);
-  letter-spacing: 0.1em;
+  font: 0.6875rem var(--font-mono);
   text-transform: uppercase;
 }
 
-.eyebrow::before {
-  content: "";
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  margin-right: var(--space-2);
-  background: var(--color-accent);
-}
-
 .page-lead {
-  max-width: 42rem;
   margin-top: var(--space-2);
   color: var(--color-muted);
 }
 
 .page-header__link {
   color: var(--color-text);
-  font: 700 var(--text-sm) / 1 var(--font-heading);
-  letter-spacing: 0.1em;
+  font: 700 0.8125rem var(--font-heading);
   text-decoration: none;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .split {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-columns: 2fr 1fr;
   gap: var(--space-6);
 }

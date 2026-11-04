@@ -76,6 +76,11 @@ a:hover {
   color: var(--color-accent);
 }
 
+.upload-card__action--sample:hover {
+  background: color-mix(in srgb, var(--color-accent) 20%, var(--color-surface));
+  text-decoration: none;
+}
+
 .dropzone:hover,
 .dropzone:focus-within {
   background: var(--color-surface-raised);

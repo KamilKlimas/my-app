@@ -38,6 +38,15 @@
     gap: var(--space-3);
   }
 
+  .steps__list,
+  .upload-card__actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .upload-card {
+    padding: var(--space-4);
+  }
+
   .stats__list {
     grid-template-columns: repeat(2, 1fr);
   }

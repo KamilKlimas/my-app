@@ -47,6 +47,7 @@ if ($user !== null && $user['role'] === 'ADMIN') {
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/demos.css">
+    <link rel="stylesheet" href="/css/upload.css">
     <link rel="stylesheet" href="/css/states.css">
     <link rel="stylesheet" href="/css/responsive.css">
 </head>
@@ -61,7 +62,7 @@ if ($user !== null && $user['role'] === 'ADMIN') {
 
     <header class="site-header">
         <div class="site-header__inner">
-            <a class="brand" href="/demos">
+            <a class="brand" href="/">
                 <strong class="brand__name">Duel<span class="brand__accent">Lab</span></strong>
                 <small class="brand__tag">Analytics Hub</small>
             </a>

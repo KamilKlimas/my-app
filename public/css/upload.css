@@ -1,0 +1,302 @@
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: center;
+}
+
+.hero__badge {
+  padding: var(--space-1) var(--space-3);
+  background: color-mix(in srgb, var(--color-accent) 10%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-accent) 50%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+  font: 600 var(--text-xs) / 1.2 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero__badge::before {
+  content: "\25CF";
+  margin-right: var(--space-2);
+}
+
+.hero__title {
+  font-size: clamp(2.5rem, 7vw, 4.5rem);
+}
+
+.hero__accent {
+  color: var(--color-accent);
+}
+
+.hero__lead {
+  max-width: 40rem;
+  color: var(--color-muted);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+
+.hero__lead code {
+  color: var(--color-text);
+}
+
+/* The faint grid is drawn with gradients in a border colour, so it follows the theme. */
+.upload-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 46rem;
+  margin-top: var(--space-4);
+  padding: var(--space-6);
+  background-color: var(--color-surface);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-border) 50%, transparent) var(--border-width), transparent var(--border-width)),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-border) 50%, transparent) var(--border-width), transparent var(--border-width));
+  background-size: 2rem 2rem;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.upload-card__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.upload-card__action {
+  padding: var(--space-3) var(--space-4);
+  font: 400 var(--text-xs) / 1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.upload-card__action--sample {
+  background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface));
+  border: var(--border-width) solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.upload-card__note {
+  color: var(--color-muted);
+  font: 400 var(--text-xs) / 1.4 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.section-header__eyebrow {
+  margin-bottom: var(--space-2);
+  color: var(--color-accent);
+  font: 600 var(--text-xs) / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.section-header__eyebrow::before {
+  content: "// ";
+}
+
+.section-header__title {
+  font-size: var(--text-xl);
+}
+
+.section-header__note {
+  color: var(--color-muted);
+  font: 400 var(--text-xs) / 1.2 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.steps__list,
+.mistakes__list {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.steps__list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* auto-fit: four cards on desktop, two on a tablet, one on a phone, without extra breakpoints. */
+.mistakes__list {
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-4);
+}
+
+.step-card,
+.mistake-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.step-card__number {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-accent);
+  font: 600 var(--text-sm) / 1.2 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.step-card__tag {
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 400;
+}
+
+.step-card__title,
+.mistake-card__title {
+  font-size: var(--text-lg);
+}
+
+.step-card__text,
+.mistake-card__text {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.step-card__preview {
+  margin: auto 0 0;
+  padding: var(--space-4);
+  background: var(--color-bg-deep);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font: 400 var(--text-xs) / 1.6 var(--font-mono);
+}
+
+.readout {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.readout__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+
+.readout__value {
+  color: var(--color-text);
+  font-weight: 600;
+  text-align: right;
+  text-transform: none;
+}
+
+.readout__value--danger {
+  color: var(--color-danger);
+}
+
+.readout__value--accent {
+  color: var(--color-accent);
+}
+
+.radar-preview {
+  text-align: center;
+}
+
+.radar-preview__svg {
+  display: block;
+  width: 100%;
+  max-height: 6rem;
+}
+
+.radar-preview__line {
+  stroke: var(--color-accent);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+
+.radar-preview__you {
+  fill: var(--color-info);
+}
+
+.radar-preview__enemy {
+  fill: var(--color-accent);
+}
+
+.radar-preview__label {
+  fill: var(--color-accent);
+  font: 400 9px var(--font-mono);
+}
+
+.radar-preview__label--you {
+  fill: var(--color-info);
+}
+
+.radar-preview__caption {
+  margin-top: var(--space-2);
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+
+.console {
+  overflow-x: auto;
+  color: var(--color-muted);
+  white-space: pre-wrap;
+}
+
+.console__prompt,
+.console__info {
+  color: var(--color-info);
+}
+
+.console__accent {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.mistake-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-muted);
+  font: 400 var(--text-xs) / 1.2 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mistake-card__share {
+  color: var(--color-accent);
+}
+
+.mistake-card--danger .mistake-card__share {
+  color: var(--color-danger);
+}
+
+.mistake-card--info .mistake-card__share {
+  color: var(--color-info);
+}
+
+.mistake-card--success .mistake-card__share {
+  color: var(--color-success);
+}

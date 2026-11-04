@@ -16,6 +16,28 @@ final class DemoController extends AppController
         ['id' => 5, 'map' => 'de_anubis', 'playedAt' => '2026-10-03 18:05', 'score' => [13, 7], 'lostDuels' => 6, 'status' => 'ready'],
     ];
 
+    // Ordered by share. Tone picks the colour in CSS.
+    private const ISSUES = [
+        ['label' => 'Shooting while moving', 'share' => 31, 'tone' => 'danger',
+            'description' => 'Fired before deceleration completed. Velocity exceeded weapon accuracy threshold.'],
+        ['label' => 'Crosshair placement offset', 'share' => 24, 'tone' => 'accent',
+            'description' => 'Crosshair rested more than 8° away from the head-level pre-aim when the enemy appeared.'],
+        ['label' => 'Blind angle engagement', 'share' => 18, 'tone' => 'info',
+            'description' => 'Dueling while flashed or through smoke, without a teammate ready to trade.'],
+        ['label' => 'Unfavourable weapon matchup', 'share' => 15, 'tone' => 'success',
+            'description' => 'Dry-peeking an AWP on a long sightline without utility or spacing.'],
+    ];
+
+    public function upload(): void
+    {
+        $this->render('upload', [
+            'pageTitle' => 'Upload a demo',
+            'activeNav' => 'demos',
+            'user' => self::USER,
+            'issues' => self::ISSUES,
+        ]);
+    }
+
     public function index(): void
     {
         $this->render('demos', [

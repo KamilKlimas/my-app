@@ -138,6 +138,34 @@
   cursor: pointer;
 }
 
+.dropzone__icon {
+  width: 2rem;
+  height: 2rem;
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dropzone--hero {
+  padding: var(--space-5) var(--space-4);
+}
+
+.dropzone--hero .dropzone__icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: var(--space-2);
+  border: 1px dashed var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+.dropzone--hero .dropzone__label {
+  font: 700 var(--text-lg) / 1.3 var(--font-heading);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .dropzone__hint {
   color: var(--color-muted);
   font: 400 var(--text-xs) / 1.4 var(--font-mono);

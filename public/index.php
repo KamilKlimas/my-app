@@ -20,7 +20,7 @@ $routing->get('/demos/{id}', DemoController::class, 'show');
 $routing->get('/hotspots', HotspotController::class, 'index');
 $routing->get('/training', TrainingController::class, 'index');
 $routing->get('/admin', AdminController::class, 'index');
-$routing->get('/', DefaultController::class, 'index');
+$routing->get('/', DemoController::class, 'upload');
 
 $routeFound = $routing->dispatch(
     $_SERVER['REQUEST_METHOD'],

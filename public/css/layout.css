@@ -126,8 +126,10 @@
   padding: var(--space-4) var(--page-gutter);
 }
 
+/* align-content: start keeps sections at their own height when the page is taller than its content. */
 .page {
   display: grid;
+  align-content: start;
   gap: var(--space-6);
   width: 100%;
   max-width: var(--page-max-width);

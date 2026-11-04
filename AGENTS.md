@@ -72,6 +72,8 @@ src/Routing.php               App\Routing: get()/post() routes, {param} placehol
 src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
 docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Postgres init scripts)
 docker-compose.yaml           services
+docs/                         product overview, architecture, roadmap, grading criteria
+public/AGENTS.md, src/AGENTS.md   extra rules for those folders (this file wins if they disagree)
 composer.json                 PSR-4: App\Controller\ → src/controllers/, App\ → src/
 ```
 

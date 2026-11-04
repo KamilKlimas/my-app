@@ -1,18 +1,19 @@
 # AGENTS.md: public/
 
-Entry point and frontend rules. They add to the root `AGENTS.md`.
+Entry point and frontend rules. They add to the root `AGENTS.md`; if the two ever disagree, the root file wins.
 
 ## Entry point
 
-- `index.php` only bootstraps the app and hands the request to the router. No business logic here.
+- `index.php` registers every route and hands the request to the router. No business logic here.
 
 ## Views
 
 - Views in `views/` only present data prepared by a controller: no SQL, no business decisions.
 - Escape every dynamic value with `$e()`, which `AppController::render()` passes to each view. Never call `htmlspecialchars()` in a view.
-- Repeated parts (header, navigation, footer) live in shared view files and are included, never copied.
+- Repeated parts (header, navigation, footer, the demo upload form) live in `views/partials/` and are included, never copied.
 - Semantic HTML. Every form field has a `<label>`, images have `alt`, everything works with a keyboard.
-- Every form includes the CSRF token field.
+- Every form that changes data includes the CSRF token field once the CSRF mechanism exists
+  (it comes with the first POST route; see Security in the root `AGENTS.md`).
 
 ## Styles and layout
 

@@ -1,10 +1,12 @@
 # AGENTS.md: src/
 
-Backend rules. They add to the root `AGENTS.md`.
+Backend rules. They add to the root `AGENTS.md`; if the two ever disagree, the root file wins.
+Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (see the Roadmap in the root file).
 
 ## Responsibilities
 
-- `Routing.php` maps an HTTP method and a URL pattern to a controller method. All routes are defined there.
+- `Routing.php` (`App\Routing`) matches an HTTP method and a URL pattern to a controller method. The routes themselves
+  are registered in `public/index.php`.
 - Controllers (`controllers/`, namespace `App\Controller`) read the request, validate input, call the logic and choose the view or response. They print no HTML and contain no SQL.
 
 <!-- TODO: when you add them, say where services and repositories live (e.g. `src/services/`, `src/repositories/`) and that SQL lives only in repositories. -->
@@ -12,7 +14,8 @@ Backend rules. They add to the root `AGENTS.md`.
 ## Classes
 
 - New logic goes into a class with one clear responsibility. No free functions, no logic in the global scope.
-- A class receives its collaborators through the constructor.
+- Controllers take no constructor arguments, because the router creates them with `new $class()`.
+  Other classes (services, repositories) receive their collaborators through the constructor.
 - Controllers and data access talk through interfaces once repositories exist.
 
 <!-- TODO: say where objects are created and wired together (e.g. in `public/index.php`). -->
@@ -34,5 +37,7 @@ Backend rules. They add to the root `AGENTS.md`.
 
 ## Routes and errors
 
-- Validate path parameters. Malformed id → 400, missing record → 404, logged-in user without rights → 403, not logged in → 401 for JSON or a redirect to the login page.
+- A `{param}` placeholder matches digits only, so a non-numeric id (`/demos/abc`) matches no route and ends as 404.
+  Missing record → 404. Malformed query or body input → 400, logged-in user without rights → 403,
+  not logged in → 401 for `/api/*` or a redirect to `/login` for pages (only 404 exists so far).
 - No `die()`, `exit`, `var_dump` or `print_r` in committed code. Errors end with a proper HTTP status and a user-friendly page.

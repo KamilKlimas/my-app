@@ -19,6 +19,26 @@ if ($user !== null && $user['role'] === 'ADMIN') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $e($pageTitle) ?> | DuelLab</title>
+    <!-- Runs before any stylesheet so the first paint already uses the right theme (no FOUC).
+         The toggle itself lives in /js/theme.js; both use the localStorage key "theme". -->
+    <script>
+        (function () {
+            let savedTheme = null;
+
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (error) {
+                savedTheme = null;
+            }
+
+            const hasSavedTheme = savedTheme === 'light' || savedTheme === 'dark';
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            document.documentElement.dataset.theme = hasSavedTheme
+                ? savedTheme
+                : (systemPrefersDark ? 'dark' : 'light');
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -66,7 +86,9 @@ if ($user !== null && $user['role'] === 'ADMIN') {
                     <button type="button" class="lang-switch__button" aria-pressed="<?= $lang === 'pl' ? 'true' : 'false' ?>">PL</button>
                     <button type="button" class="lang-switch__button" aria-pressed="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</button>
                 </div>
-                <button type="button" class="icon-button" aria-label="Toggle dark mode">Theme</button>
+                <button type="button" class="icon-button theme-toggle" aria-pressed="false" aria-label="Switch to dark theme" title="Change theme">
+                    <span class="theme-toggle__label">Dark</span>
+                </button>
 
                 <?php if ($user !== null): ?>
                     <p class="user-chip">

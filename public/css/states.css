@@ -8,6 +8,23 @@ button,
     border-color 0.15s ease;
 }
 
+/* Theme switch: theme.js wraps it in a View Transition, so the browser cross-fades two snapshots
+   of the page once. Nothing animates outside the switch, so there is no cost while browsing. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.25s;
+  animation-timing-function: ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a,
+  button,
+  .dropzone,
+  .table__row {
+    transition: none;
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;

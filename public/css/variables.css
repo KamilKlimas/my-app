@@ -1,4 +1,6 @@
+/* Dark is the default: it is what the page looks like before (or without) the theme script. */
 :root {
+  color-scheme: dark;
   --color-bg: #0b1118;
   --color-bg-deep: #080b0f;
   --color-surface: #101821;
@@ -12,6 +14,8 @@
   --color-danger: #ef4a4a;
   --color-success: #2fbf71;
   --color-info: #4aa3ff;
+  /* Hover mixes the accent towards this colour: lighter on a dark page, darker on a light one. */
+  --color-hover-mix: white;
 
   --font-heading: "Barlow Condensed", "Arial Narrow", sans-serif;
   --font-body: "Barlow", system-ui, sans-serif;
@@ -37,4 +41,25 @@
   --radius-md: 6px;
   --page-max-width: 80rem;
   --page-gutter: var(--space-5);
+}
+
+/* Only colours change between themes; spacing, fonts and sizes stay in :root.
+   Dimmed on purpose: mid-grey backgrounds instead of white, so the page doesn't glare
+   (text ~11:1 instead of ~18:1). Every text colour still keeps at least 5:1 on every background below. */
+html[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #d5d9de;
+  --color-bg-deep: #cbd0d6;
+  --color-surface: #dfe2e6;
+  --color-surface-raised: #d0d5db;
+  --color-border: #b4bcc6;
+  --color-border-strong: #8f9aa7;
+  --color-text: #1b222b;
+  --color-muted: #414c59;
+  --color-accent: #7a4204;
+  --color-accent-ink: #e6e8eb;
+  --color-danger: #9c2228;
+  --color-success: #185c37;
+  --color-info: #22528f;
+  --color-hover-mix: black;
 }

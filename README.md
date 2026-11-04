@@ -1,0 +1,125 @@
+# DuelLab
+
+Aplikacja webowa dla graczy Counter-Strike 2. Użytkownik wgrywa demo meczu (`.dem`), aplikacja znajduje przegrane
+pojedynki, diagnozuje ich przyczynę i generuje scenariusze treningowe eksportowane jako plik konfiguracyjny CS2 (`.cfg`).
+
+Projekt semestralny z przedmiotu „Wstęp do aplikacji internetowych” (Politechnika Krakowska), rozwijany laboratorium
+po laboratorium, bez frameworków PHP i CSS.
+
+## Stan projektu
+
+Po laboratorium 5 strony renderują **dane przykładowe** zdefiniowane w kontrolerach. Nie ma jeszcze bazy danych,
+logowania ani sesji.
+
+**Motyw jasny i ciemny:** przycisk w nagłówku przełącza `data-theme` na `<html>`, a wybór zapisuje się w `localStorage`
+(klucz `theme`). Bez zapisanego wyboru obowiązuje ustawienie systemu (`prefers-color-scheme`). Powrót do ustawienia
+systemowego: w konsoli `localStorage.removeItem('theme'); location.reload();`. Formularze (logowanie, upload demo, panel admina) wysyłają żądania
+do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404.
+
+## Funkcje
+
+| Trasa              | Kontroler i akcja              | Co pokazuje                                    |
+|--------------------|--------------------------------|------------------------------------------------|
+| `/`                | `DemoController::upload`       | strona startowa: wgrywanie dema, jak działa DuelLab, wykrywane błędy |
+| `/login`           | `SecurityController::login`    | formularz logowania (po polsku)                |
+| `/demos`           | `DemoController::index`        | moje dema: statystyki, szybki upload, tabela z filtrem `?map=` i `?outcome=` |
+| `/demos/{id}`      | `DemoController::show`         | szczegóły dema; nieznane id → 404              |
+| `/hotspots`        | `HotspotController::index`     | miejsca na mapie, w których gracz przegrywa    |
+| `/training`        | `TrainingController::index`    | zestawy treningowe                             |
+| `/admin`           | `AdminController::index`       | panel administratora                           |
+| każda inna         | `DefaultController::notFound`  | strona 404                                     |
+
+`{id}` dopasowuje tylko cyfry, więc np. `/demos/abc` nie pasuje do żadnej trasy i zwraca 404.
+
+Filtr na `/demos` to zwykły formularz GET: `map` przyjmuje `all` albo mapę obecną na liście dem, `outcome` przyjmuje
+`all`, `win` lub `loss`. Każda inna wartość wraca do `all`. Dema bez wyniku (w trakcie parsowania lub z błędem)
+nie są ani wygraną, ani przegraną.
+
+## Tech stack
+
+| Warstwa         | Technologie                                          |
+|-----------------|------------------------------------------------------|
+| Backend         | PHP 8.3 (PHP-FPM), własny router i kontrolery         |
+| Frontend        | HTML, czysty CSS                                     |
+| Serwer HTTP     | nginx                                                |
+| Baza danych     | PostgreSQL 17 (jeszcze nieużywana przez aplikację)   |
+| Narzędzia       | Composer (autoloading PSR-4), Mailpit, pgAdmin       |
+| Konteneryzacja  | Docker, Docker Compose                               |
+
+## Szybki start
+
+1. Utwórz plik `.env` w katalogu projektu (nie jest commitowany) i ustaw w nim zmienne:
+
+   | Zmienna                    | Wymagana | Domyślnie  |
+   |----------------------------|----------|------------|
+   | `POSTGRES_DB`              | tak      | —          |
+   | `POSTGRES_USER`            | tak      | —          |
+   | `POSTGRES_PASSWORD`        | tak      | —          |
+   | `PGADMIN_DEFAULT_EMAIL`    | tak      | —          |
+   | `PGADMIN_DEFAULT_PASSWORD` | tak      | —          |
+   | `APP_PORT`                 | nie      | `8080`     |
+   | `POSTGRES_PORT`            | nie      | `5433`     |
+   | `MAILPIT_PORT`             | nie      | `8025`     |
+   | `PGADMIN_PORT`             | nie      | `5050`     |
+   | `PGADMIN_CONTAINER_NAME`   | nie      | `pg-admin` |
+
+2. Uruchom kontenery:
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   Przy pierwszym starcie kontener `php` sam wykona `composer install`, jeśli brakuje katalogu `vendor/`.
+
+| Usługa      | Adres                     |
+|-------------|---------------------------|
+| Aplikacja   | http://localhost:8080     |
+| Mailpit     | http://localhost:8025     |
+| pgAdmin     | http://localhost:5050     |
+| PostgreSQL  | `localhost:5433`          |
+
+Dane bazy trzymane są w anonimowym wolumenie, więc `docker compose down` i ponowne `up` startuje z pustą bazą.
+
+## Przydatne polecenia
+
+```bash
+docker compose ps                                   # stan kontenerów
+docker compose logs -f php server                   # logi
+docker compose exec -T php php -l src/Routing.php   # sprawdzenie składni pliku PHP
+docker compose exec -T php composer dump-autoload   # po zmianie autoloadingu
+curl -i http://localhost:8080/demos/1               # sprawdzenie trasy i kodu odpowiedzi
+```
+
+## Zasady developmentu
+
+- Nazwy techniczne w kodzie po angielsku; tekst interfejsu na razie zapisany na sztywno.
+- Każda wartość dynamiczna w szablonie przechodzi przez `$e(...)` (`htmlspecialchars`).
+- Sekrety tylko w `.env`, którego nie commitujemy.
+- Jeden commit = jedna logiczna zmiana, np. `feat(css): add hover and focus-visible states`.
+- Praca bezpośrednio na `main`; każdy commit zaczyna się od typu i zakresu (`feat`, `fix`, `chore`, `docs`, ...).
+
+Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
+
+## Struktura projektu
+
+```text
+.
+├── docker/
+│   ├── db/                 # obraz PostgreSQL, skrypty init (.sql)
+│   ├── nginx/              # obraz i konfiguracja nginx
+│   └── php/                # obraz PHP-FPM, entrypoint (composer install)
+├── public/                 # document root nginx
+│   ├── css/                # variables → base → layout → components → demos → upload → states → responsive
+│   ├── index.php           # front controller, rejestracja tras
+│   └── views/              # szablony stron + partials/ (header, footer, upload-form)
+├── src/
+│   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
+│   └── Routing.php         # router GET/POST z parametrami {param}
+├── composer.json           # autoloading PSR-4
+├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
+└── README.md
+```
+
+## Autorzy
+
+- Kamil Klimas

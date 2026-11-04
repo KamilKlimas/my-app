@@ -1,15 +1,14 @@
-<!doctype html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle) ?></title>
-</head>
-<body>
-    <main>
-        <h1>404</h1>
-        <p>Taka strona nie istnieje.</p>
-        <a href="/">Wróć na stronę główną</a>
+<?php require __DIR__ . '/partials/header.html.php'; ?>
+
+    <main class="page">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">Error 404</p>
+                <h1 class="page-title"><?= $e($pageTitle) ?></h1>
+                <p class="page-lead">This page doesn't exist or the record was removed.</p>
+            </div>
+            <a class="page-header__link" href="/demos">Back to my demos</a>
+        </header>
     </main>
-</body>
-</html>
+
+<?php require __DIR__ . '/partials/footer.html.php'; ?>

@@ -5,3 +5,13 @@
 vendor/
 node_modules/
 docker/data/
+CLAUDE.local.md
+
+# Claude Code: share only settings.json and skills ("!.claude/" overrides a global ignore)
+!.claude/
+.claude/*
+!.claude/settings.json
+!.claude/skills/
+
+# Local drafts of agent playbooks for areas that aren't built yet
+.agents/drafts/

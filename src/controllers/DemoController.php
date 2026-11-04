@@ -31,6 +31,8 @@ final class DemoController extends AppController
             'description' => 'Dry-peeking an AWP on a long sightline without utility or spacing.'],
     ];
 
+    private const OUTCOMES = ['all' => 'All outcomes', 'win' => 'Wins', 'loss' => 'Losses'];
+
     public function upload(): void
     {
         $this->render('upload', [
@@ -43,6 +45,8 @@ final class DemoController extends AppController
 
     public function index(): void
     {
+        $filters = $this->selectedFilters();
+
         $this->render('demos', [
             'pageTitle' => 'My demos',
             'activeNav' => 'demos',
@@ -53,7 +57,11 @@ final class DemoController extends AppController
                 'topIssue' => self::ISSUES[0],
             ],
             'upload' => ['file' => 'match_2026-10-06_de_mirage.dem', 'progress' => 64],
-            'demos' => self::DEMOS,
+            'filters' => $filters,
+            'mapOptions' => ['all' => 'All maps'] + array_combine(self::mapNames(), self::mapNames()),
+            'outcomeOptions' => self::OUTCOMES,
+            'demos' => $this->filterDemos($filters['map'], $filters['outcome']),
+            'totalDemos' => count(self::DEMOS),
         ]);
     }
 
@@ -69,6 +77,43 @@ final class DemoController extends AppController
 
         http_response_code(404);
         (new DefaultController())->notFound();
+    }
+
+    /** @return array{map: string, outcome: string} */
+    private function selectedFilters(): array
+    {
+        $map = (string) ($_GET['map'] ?? 'all');
+        $outcome = (string) ($_GET['outcome'] ?? 'all');
+
+        return [
+            'map' => in_array($map, self::mapNames(), true) ? $map : 'all',
+            'outcome' => array_key_exists($outcome, self::OUTCOMES) ? $outcome : 'all',
+        ];
+    }
+
+    /** @return list<string> */
+    private static function mapNames(): array
+    {
+        return array_values(array_unique(array_column(self::DEMOS, 'map')));
+    }
+
+    // Stands in for a WHERE clause until demos come from the database.
+    private function filterDemos(string $map, string $outcome): array
+    {
+        $demos = array_filter(self::DEMOS, function (array $demo) use ($map, $outcome): bool {
+            if ($map !== 'all' && $demo['map'] !== $map) {
+                return false;
+            }
+
+            if ($outcome === 'all') {
+                return true;
+            }
+
+            // Demos without a score (still parsing or failed) are neither a win nor a loss.
+            return $demo['score'] !== null && ($demo['score'][0] > $demo['score'][1]) === ($outcome === 'win');
+        });
+
+        return array_values($demos);
     }
 
     private function renderDemo(array $demo): void

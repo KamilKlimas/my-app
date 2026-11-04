@@ -62,6 +62,22 @@
                     Recent demos <span class="count-badge"><?= count($demos) ?> <?= count($demos) === 1 ? 'match' : 'matches' ?></span>
                 </h2>
                 <p class="recent__note">Status refreshes automatically</p>
+
+                <form class="filters" method="get" action="/demos">
+                    <label class="visually-hidden" for="filter-map">Map</label>
+                    <select class="filters__select" id="filter-map" name="map">
+                        <?php foreach ($mapOptions as $value => $label): ?>
+                            <option value="<?= $e($value) ?>"<?= $value === $filters['map'] ? ' selected' : '' ?>><?= $e($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <label class="visually-hidden" for="filter-outcome">Outcome</label>
+                    <select class="filters__select" id="filter-outcome" name="outcome">
+                        <?php foreach ($outcomeOptions as $value => $label): ?>
+                            <option value="<?= $e($value) ?>"<?= $value === $filters['outcome'] ? ' selected' : '' ?>><?= $e($label) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <button class="button button--ghost button--small" type="submit">Filter</button>
+                </form>
             </div>
             <table class="table">
                 <thead>
@@ -75,6 +91,11 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <?php if ($demos === []): ?>
+                        <tr>
+                            <td class="table__empty" colspan="6">No demos match these filters.</td>
+                        </tr>
+                    <?php endif; ?>
                     <?php foreach ($demos as $demo): ?>
                         <?php $playedAt = new DateTimeImmutable($demo['playedAt']); ?>
                         <tr class="table__row table__row--<?= $e($demo['status']) ?>">
@@ -127,6 +148,7 @@
                     <?php endforeach; ?>
                 </tbody>
             </table>
+            <p class="recent__footer">Showing <strong><?= count($demos) ?></strong> of <strong><?= (int) $totalDemos ?></strong> uploaded demos</p>
         </section>
     </main>
 

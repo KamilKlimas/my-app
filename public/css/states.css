@@ -1,7 +1,8 @@
 a,
 button,
 .dropzone,
-.table__row {
+.table__row,
+.filters__select {
   transition:
     color 0.15s ease,
     background-color 0.15s ease,
@@ -20,7 +21,8 @@ button,
   a,
   button,
   .dropzone,
-  .table__row {
+  .table__row,
+  .filters__select {
     transition: none;
   }
 }
@@ -86,6 +88,10 @@ a:hover {
 .upload-card__action--sample:hover {
   background: color-mix(in srgb, var(--color-accent) 20%, var(--color-surface));
   text-decoration: none;
+}
+
+.filters__select:hover {
+  border-color: var(--color-accent);
 }
 
 .dropzone:hover,

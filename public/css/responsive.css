@@ -56,6 +56,10 @@
     margin-left: 0;
   }
 
+  .filters {
+    margin-left: 0;
+  }
+
   .stat__value--text {
     font-size: var(--text-md);
   }

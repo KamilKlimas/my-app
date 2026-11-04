@@ -76,6 +76,13 @@ a:hover {
   color: var(--color-accent);
 }
 
+.button--outline:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
 .upload-card__action--sample:hover {
   background: color-mix(in srgb, var(--color-accent) 20%, var(--color-surface));
   text-decoration: none;
@@ -97,10 +104,16 @@ a:hover {
 }
 
 .table__action:hover {
+  border-color: var(--color-accent);
   color: var(--color-accent);
-  text-decoration: underline;
+  text-decoration: none;
+}
+
+.table__action--muted:hover {
+  color: var(--color-muted);
 }
 
 .table__action--danger:hover {
+  border-color: var(--color-danger);
   color: color-mix(in srgb, var(--color-danger) 70%, var(--color-hover-mix));
 }

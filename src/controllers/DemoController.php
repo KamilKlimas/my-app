@@ -14,9 +14,12 @@ final class DemoController extends AppController
         ['id' => 3, 'map' => 'de_ancient', 'playedAt' => '2026-10-05 22:10', 'score' => null, 'lostDuels' => null, 'status' => 'processing', 'progress' => 40],
         ['id' => 4, 'map' => 'de_nuke', 'playedAt' => '2026-10-04 19:30', 'score' => null, 'lostDuels' => null, 'status' => 'failed', 'error' => 'invalid header', 'errorDetail' => 'Not a CS2 demo (invalid file header)'],
         ['id' => 5, 'map' => 'de_anubis', 'playedAt' => '2026-10-03 18:05', 'score' => [13, 7], 'lostDuels' => 6, 'status' => 'ready'],
+        ['id' => 6, 'map' => 'de_dust2', 'playedAt' => '2026-10-02 19:15', 'score' => [11, 13], 'lostDuels' => 14, 'status' => 'ready'],
     ];
 
-    // Ordered by share. Tone picks the colour in CSS.
+    private const STATS = ['demosAnalysed' => 18, 'lostDuels' => 214, 'trainableDuels' => 137];
+
+    // Ordered by share; the first one is the "Top issue" on /demos. Tone picks the colour in CSS.
     private const ISSUES = [
         ['label' => 'Shooting while moving', 'share' => 31, 'tone' => 'danger',
             'description' => 'Fired before deceleration completed. Velocity exceeded weapon accuracy threshold.'],
@@ -44,12 +47,10 @@ final class DemoController extends AppController
             'pageTitle' => 'My demos',
             'activeNav' => 'demos',
             'user' => self::USER,
-            'stats' => [
-                'demosAnalysed' => 18,
-                'lostDuels' => 214,
-                'trainableDuels' => 137,
-                'convertedPercent' => round(137 / 214 * 100, 1),
-                'topIssue' => ['label' => 'Shooting while moving', 'share' => 31],
+            'stats' => self::STATS + [
+                'duelsPerMatch' => round(self::STATS['lostDuels'] / self::STATS['demosAnalysed'], 1),
+                'convertedPercent' => (int) round(self::STATS['trainableDuels'] / self::STATS['lostDuels'] * 100),
+                'topIssue' => self::ISSUES[0],
             ],
             'upload' => ['file' => 'match_2026-10-06_de_mirage.dem', 'progress' => 64],
             'demos' => self::DEMOS,

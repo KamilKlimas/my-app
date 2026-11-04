@@ -3,70 +3,64 @@
     <main class="page">
         <header class="page-header">
             <div>
-                <p class="eyebrow">Combat telemetry // Replay vault</p>
-                <h1 class="page-title">My demos</h1>
+                <h1 class="page-title">My demos <span class="live-badge">Live parser</span></h1>
                 <p class="page-lead">Upload a CS2 demo &mdash; DuelLab finds the duels you lost, tells you why, and turns them into practice scenarios.</p>
             </div>
-            <a class="page-header__link" href="/training">Open training set</a>
+            <a class="button button--outline" href="/training">Open training set</a>
         </header>
 
-        <section class="stats" aria-labelledby="stats-heading">
+        <section class="overview" aria-labelledby="stats-heading">
             <h2 id="stats-heading" class="visually-hidden">Summary</h2>
             <dl class="stats__list">
                 <div class="stat">
                     <dt class="stat__label">Demos analysed</dt>
-                    <dd class="stat__value"><?= $e($stats['demosAnalysed']) ?></dd>
-                    <dd class="stat__note">recorded</dd>
+                    <dd class="stat__value"><?= (int) $stats['demosAnalysed'] ?></dd>
+                    <dd class="stat__note">Last 30 days active</dd>
                 </div>
                 <div class="stat stat--danger">
                     <dt class="stat__label">Lost duels found</dt>
-                    <dd class="stat__value"><?= $e($stats['lostDuels']) ?></dd>
-                    <dd class="stat__note">total engaged</dd>
+                    <dd class="stat__value"><?= (int) $stats['lostDuels'] ?></dd>
+                    <dd class="stat__note"><?= $e($stats['duelsPerMatch']) ?> duels/match avg</dd>
                 </div>
                 <div class="stat stat--accent">
                     <dt class="stat__label">Trainable duels</dt>
-                    <dd class="stat__value"><?= $e($stats['trainableDuels']) ?></dd>
-                    <dd class="stat__note"><?= $e($stats['convertedPercent']) ?>% converted</dd>
+                    <dd class="stat__value"><?= (int) $stats['trainableDuels'] ?></dd>
+                    <dd class="stat__note"><?= (int) $stats['convertedPercent'] ?>% conversion rate</dd>
                 </div>
                 <div class="stat stat--issue">
                     <dt class="stat__label">Top issue</dt>
                     <dd class="stat__value stat__value--text"><?= $e($stats['topIssue']['label']) ?></dd>
-                    <dd class="stat__note"><?= $e($stats['topIssue']['share']) ?>% of lost duels</dd>
+                    <dd class="stat__note"><strong class="stat__share"><?= (int) $stats['topIssue']['share'] ?>%</strong> of all lost duels</dd>
                 </div>
             </dl>
-        </section>
 
-        <div class="split">
-            <section class="panel" aria-labelledby="upload-heading">
-                <h2 id="upload-heading" class="panel__title">Upload a demo</h2>
-                <form class="dropzone" method="post" action="/demos" enctype="multipart/form-data">
-                    <label class="dropzone__label" for="demo-file">Drop a <code>.dem</code> file here or browse</label>
-                    <input class="dropzone__input" type="file" id="demo-file" name="demo" accept=".dem" required>
-                    <p class="dropzone__hint">CS2 demos only &middot; max 300 MB &middot; checked on the server before processing</p>
-                    <button class="button" type="submit">Upload</button>
-                </form>
+            <section class="quick-upload" aria-labelledby="quick-upload-heading">
+                <div class="quick-upload__header">
+                    <h3 id="quick-upload-heading" class="quick-upload__title">Quick upload .dem</h3>
+                    <button class="button button--ghost button--small" type="button">Sync folder</button>
+                </div>
+                <?php $dropzoneClass = 'dropzone--compact'; ?>
+                <?php require __DIR__ . '/partials/upload-form.html.php'; ?>
 
                 <?php if ($upload !== null): ?>
                     <p class="upload-progress">
-                        <label class="upload-progress__label" for="upload-progress"><?= $e($upload['file']) ?> &mdash; uploading...</label>
+                        <label class="upload-progress__label" for="upload-progress">
+                            <span><?= $e($upload['file']) ?></span>
+                            <span class="upload-progress__value"><?= (int) $upload['progress'] ?>%</span>
+                        </label>
                         <progress class="progress" id="upload-progress" value="<?= (int) $upload['progress'] ?>" max="100">
                             <?= (int) $upload['progress'] ?>%
                         </progress>
                     </p>
                 <?php endif; ?>
             </section>
-
-            <aside class="panel" aria-labelledby="auto-import-heading">
-                <h2 id="auto-import-heading" class="panel__title panel__title--info">Auto-import from your replays folder</h2>
-                <p class="panel__text">Point DuelLab at the CS2 replays folder once. New demos are picked up whenever this tab is open (Chrome / Edge).</p>
-                <button class="button button--ghost" type="button">Choose folder</button>
-                <p class="panel__note"><small>Other browsers: drag the file in manually.</small></p>
-            </aside>
-        </div>
+        </section>
 
         <section class="recent" aria-labelledby="recent-heading">
             <div class="recent__header">
-                <h2 id="recent-heading">Recent demos</h2>
+                <h2 id="recent-heading" class="recent__title">
+                    Recent demos <span class="count-badge"><?= count($demos) ?> <?= count($demos) === 1 ? 'match' : 'matches' ?></span>
+                </h2>
                 <p class="recent__note">Status refreshes automatically</p>
             </div>
             <table class="table">
@@ -83,8 +77,8 @@
                 <tbody>
                     <?php foreach ($demos as $demo): ?>
                         <?php $playedAt = new DateTimeImmutable($demo['playedAt']); ?>
-                        <tr class="table__row<?= $demo['status'] === 'processing' ? ' is-processing' : '' ?>">
-                            <th scope="row"><code class="chip"><?= $e($demo['map']) ?></code></th>
+                        <tr class="table__row table__row--<?= $e($demo['status']) ?>">
+                            <th scope="row"><code class="map-name map-name--<?= $e($demo['status']) ?>"><?= $e($demo['map']) ?></code></th>
                             <td data-label="Played">
                                 <time datetime="<?= $e($playedAt->format('Y-m-d\TH:i')) ?>">
                                     <?= $e($playedAt->format('M j, H:i')) ?>

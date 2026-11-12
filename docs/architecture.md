@@ -112,7 +112,7 @@ This table is the source for the graded Mermaid ERD in `README.md`, written once
 
 - Radar position for a 1024 px radar image: `x = (world_x − pos_x) / scale`, `y = (pos_y − world_y) / scale`; scale linearly for other sizes.
 - Demos run at 64 ticks per second. The scenario spawn is the player's position and view at first contact minus 48 ticks (0.75 s); the bot stands where the killer was at first contact.
-- `.cfg` placement uses `bot_place`: the player is teleported above the killer's position looking down, the bot is placed, then the player is teleported to their spawn. Requires `sv_cheats 1`, so offline or private games only.
+- `.cfg` placement uses `bot_place`, which puts an existing, living bot where the player's crosshair ray hits the world. Each scenario is one line: `setpos x y z+50; setang 89 0 0; bot_place; setpos <spawn>; setang <view>`, where `x y z` is the killer's position from the demo (feet, same units as `getpos`). CS2 has no `wait` command, and the line works without one: the server applies the teleport before `bot_place` traces. Requires `sv_cheats 1`, so offline or private games only.
 - The `.cfg` export is deterministic: the same training set always gives a byte-identical file, so it can be tested with exact expected output.
 
 ## Scheduled jobs *(planned)*
@@ -129,6 +129,6 @@ Each run is logged in `cron_runs`.
 ## Open technical questions
 
 - **Where diagnosis runs:** in the parser worker, or in PHP from the raw duel data the worker stores. Undecided. PHP would keep the rules unit-tested with PHPUnit and explainable at the demo.
-- **`bot_place` accuracy and height offset:** not verified in the game yet.
+- **`bot_place` accuracy and height offset:** checked in CS2 on de_mirage (2026-11-12): works, no correction needed. Bot feet vs target height: crate 0.1, plank on a crate 0.1, flat ground 1.5, stairs 3.7 units (the hull rests on the higher step). Horizontally the bot lands under the crosshair; the theoretical error is about 3 units, because pitch stops at 89°. Open: which way the placed bot faces. `setpos_player` and `ent_setang` exist but were not needed. `getpos` inside the same `.cfg` still prints the old position, so measure by hand afterwards.
 - **Visibility data:** does the parser expose "spotted" flags or line of sight? Without them, "first contact" needs another method.
 - **Writing into the CS2 folder:** Chrome may block writing to the Steam folder; the fallback is a normal download.

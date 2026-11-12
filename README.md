@@ -8,8 +8,8 @@ po laboratorium, bez frameworków PHP i CSS.
 
 ## Stan projektu
 
-Po laboratorium 5 strony renderują **dane przykładowe** zdefiniowane w kontrolerach. Nie ma jeszcze bazy danych,
-logowania ani sesji.
+Po etapie M1 (fundamenty) strony renderują **dane przykładowe** zdefiniowane w kontrolerach. Baza ma już schemat
+(`users`, `maps`) i dane demo, ale aplikacja jeszcze się z nią nie łączy. Nie ma logowania ani sesji.
 
 **Motyw jasny i ciemny:** przycisk w nagłówku przełącza `data-theme` na `<html>`, a wybór zapisuje się w `localStorage`
 (klucz `theme`). Bez zapisanego wyboru obowiązuje ustawienie systemu (`prefers-color-scheme`). Powrót do ustawienia
@@ -49,7 +49,13 @@ nie są ani wygraną, ani przegraną.
 
 ## Szybki start
 
-1. Utwórz plik `.env` w katalogu projektu (nie jest commitowany) i ustaw w nim zmienne:
+1. Utwórz plik `.env` (nie jest commitowany) z przykładowej konfiguracji:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Wartości z przykładu wystarczą do pracy lokalnej. Zmienne:
 
    | Zmienna                    | Wymagana | Domyślnie  |
    |----------------------------|----------|------------|
@@ -132,16 +138,20 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   ├── db/                 # obraz PostgreSQL, skrypty init (.sql)
 │   ├── nginx/              # obraz i konfiguracja nginx
 │   └── php/                # obraz PHP-FPM, entrypoint (composer install)
+├── docs/                   # opis produktu, architektura, roadmapa, kryteria oceny
 ├── public/                 # document root nginx
 │   ├── css/                # variables → base → layout → components → demos → upload → states → responsive
+│   ├── js/                 # moduły przeglądarki (theme.js)
 │   ├── index.php           # front controller, rejestracja tras
 │   └── views/              # szablony stron + partials/ (header, footer, upload-form)
 ├── src/
 │   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
 │   ├── Http/               # Query (odczyt $_GET), BadRequest (wyjątek → 400)
 │   └── Routing.php         # router GET/POST z parametrami {param}
-├── composer.json           # autoloading PSR-4
+├── tests/Unit/             # testy PHPUnit (router, Query)
+├── composer.json           # autoloading PSR-4, PHPUnit jako zależność dev
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
+├── phpunit.xml             # konfiguracja testów
 └── README.md
 ```
 

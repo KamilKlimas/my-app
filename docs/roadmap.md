@@ -1,6 +1,6 @@
 # DuelLab: roadmap
 
-Status as of 2026-11-12 (week 2). Plan assumes about 8–10 hours a week. Week 1 starts on 2026-11-02.
+Status as of 2026-11-13 (week 2). Plan assumes about 8–10 hours a week. Week 1 starts on 2026-11-02.
 <!-- TODO: add the submission deadline and demo date once known. -->
 
 ## Done
@@ -12,23 +12,24 @@ Status as of 2026-11-12 (week 2). Plan assumes about 8–10 hours a week. Week 1
 - Pages with mock data: start page with the upload form (`/`), "My demos" with `?map=` and `?outcome=` filters,
   404 page with the shared layout.
 - Light and dark theme: colour tokens per theme, saved preference, per-theme backdrop photos (lab 5).
+- M1 foundations (weeks 1–2, closed 2026-11-13, on schedule):
+  - Router: static route, `{id}` matching digits only, whitelisted query parameters; 404 for unknown paths and ids,
+    400 for a query parameter that is not a string.
+  - PostgreSQL with data in the `pg-data` volume; migrations `001_create_users`, `002_create_maps` and the seed
+    `900_seed_demo_data` load on an empty volume.
+  - PHPUnit 12 in the `php` container with router and query tests.
+  - `bot_place` checked in the game: works without a height correction (`architecture.md` → Open technical questions).
+- Open from M1: compare the radar calibration of de_ancient, de_anubis and de_dust2 with the game files.
+  Before the deploy (M3): a migration runner, and keeping the demo accounts out of production.
 
-## Current milestone: M1, foundations (weeks 1–2)
+## Current milestone: M2, accounts (week 3)
 
-Exit criteria and progress:
-- [ ] Router handles a static route, a regex route, a validated `{id}` parameter and a query parameter, with 400/404.
-  Done: static and `{id}` routes, whitelisted query parameters, 404. Missing: 400 for malformed input.
-- [ ] PostgreSQL runs in Docker Compose with a persistent volume; the first migration and seed load.
-  Done: data persists in the `pg-data` volume. Missing: `docker/db/` has no SQL files yet.
-- [ ] PHPUnit runs in the container with first router tests. Not started.
-- [ ] Two-hour time-boxed check of `bot_place` in the game; result recorded in `architecture.md` → Open technical questions.
-  Not started.
+Exit criteria: register, login, logout, session, roles, CSRF, PL/EN (the theme is already done).
 
 ## Next milestones
 
 | Milestone | Weeks | Exit criteria |
 |-----------|-------|---------------|
-| M2 accounts | 3 | register, login, logout, session, roles, CSRF, PL/EN (the theme is already done) |
 | M3 first deploy and upload | 4 | the skeleton is deployed; demo upload, queue, worker with the parser, status polling |
 | M4 analysis | 5–6 | lost duels, diagnoses showing the measured value next to the threshold, Hotspots page with the database view, radar view; pattern check on 10 own demos |
 | M5 training | 7 | training sets, "Train this spot" from a hotspot, `.cfg` export with the export date stored, tests for the generator |

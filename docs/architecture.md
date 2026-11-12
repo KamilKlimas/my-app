@@ -1,6 +1,6 @@
 # DuelLab: architecture
 
-Status: target design, 2026-11-01. Parts not in the repository yet are marked *(planned)*.
+Status: target design, last updated 2026-11-13 (end of M1). Parts not in the repository yet are marked *(planned)*.
 This file records decisions and their reasons. Coding rules are in the `AGENTS.md` files.
 
 ## Why it looks like this
@@ -9,7 +9,7 @@ This file records decisions and their reasons. Coding rules are in the `AGENTS.m
 - The author explains every line at the demo, so simple beats clever.
 - The demo parser is the author's own existing code, run as a separate service.
 
-Open questions about languages and libraries are in `roadmap.md` → Pending decisions.
+Undecided technical points are listed at the end of this file, in Open technical questions.
 
 ## Components
 

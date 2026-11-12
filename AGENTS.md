@@ -14,7 +14,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - **The owner must explain every line at the demo.** Prefer small, readable changes; clever ones are acceptable with an explanation.
 - **Build only what the current task needs.** Don't scaffold Roadmap items ahead of time.
 
-## Current state (after lab 5: light and dark theme)
+## Current state (after M1: foundations; lab 5: light and dark theme)
 
 - Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF
   or translation system yet.
@@ -139,6 +139,9 @@ A `BadRequest` thrown by the action is caught in `public/index.php` → `Default
   a non-string query parameter renders the 400 one.
 - After a successful POST, redirect (Post/Redirect/Get) instead of rendering.
 
+**Tests**
+- PHPUnit unit tests in `tests/Unit/`: a valid and an invalid case per behaviour, no database in unit tests (playbook `add-unit-test`).
+
 ## Security (non-negotiable)
 
 - Output: every dynamic value in a template goes through `$e(...)`, the closure `AppController::render()` passes to each template
@@ -152,7 +155,7 @@ A `BadRequest` thrown by the action is caught in `public/index.php` → `Default
 - Sessions: `session_regenerate_id(true)` after login; cookie `HttpOnly`, `SameSite=Lax`, `Secure` in production; logout destroys the session.
 - Uploads: size limit, real MIME type via `finfo`, extension whitelist, random file name, relative path in the DB;
   demos must start with the `PBDEMS2` header and are stored outside `public/`.
-- Secrets live only in `.env` (gitignored). New variables go into `.env.example` with a safe placeholder (create it with the next variable).
+- Secrets live only in `.env` (gitignored). New variables go into `.env.example` with a safe placeholder.
 - Known issue: templates sit under the web root, so `GET /views/<name>.html.php` runs a template without data and prints
   a PHP warning and stack trace with server paths (`display_errors` is on). Fixing it changes nginx or the layout: ask the owner.
 
@@ -166,7 +169,6 @@ Don't scaffold these ahead of time. The change that builds an item moves its rul
 - Translations (`lang/pl.php`, `lang/en.php` via `t('key')`).
 - JavaScript modules in `public/js/`, all network calls through one `api.js`; JSON API under `/api/`.
 - Uploads (demos, map radar images), the demo-parsing `worker`, `cron` jobs, e-mail through PHPMailer and Mailpit.
-- PHPUnit unit tests in `tests/Unit/`: a valid and an invalid case per behaviour, no database in unit tests.
 
 ## Domain glossary
 
@@ -202,5 +204,5 @@ A new playbook is added in the change that builds the area it covers.
 1. `php -l` passes for every changed PHP file.
 2. Route changes: the URL returns the expected status (`curl -i`); non-numeric and unknown ids return 404.
 3. Changed UI checked at 360/768/1440 px and by keyboard.
-4. README updated if behaviour, routes or setup changed (create `README.md` with the first such change).
+4. README updated if behaviour, routes or setup changed.
 5. Final message: changed files (`git diff --stat`), what was verified, and what the owner should check by hand.

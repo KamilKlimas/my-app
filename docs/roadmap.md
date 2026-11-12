@@ -25,9 +25,9 @@ Exit criteria:
 |-----------|-------|---------------|
 | M2 accounts | 3 | register, login, logout, session, roles, CSRF, PL/EN, dark/light theme |
 | M3 first deploy and upload | 4 | the skeleton is deployed; demo upload, queue, worker with the parser, status polling |
-| M4 analysis | 5–6 | lost duels, diagnoses, Hotspots page with the database view, radar view |
-| M5 training | 7 | training sets, `.cfg` export, tests for the generator |
-| M6 admin and background | 8 | maps with radar upload, queue panel, CRON jobs, e-mail |
+| M4 analysis | 5–6 | lost duels, diagnoses showing the measured value next to the threshold, Hotspots page with the database view, radar view; pattern check on 10 own demos |
+| M5 training | 7 | training sets, "Train this spot" from a hotspot, `.cfg` export with the export date stored, tests for the generator |
+| M6 admin and background | 8 | maps with radar upload, queue panel, CRON jobs, e-mail; before/after rate for each trained pattern |
 | M7 polish and docs | 9–10 | WCAG report, responsiveness, Security Bingo table, README with ERD, `.sql` export |
 | Buffer | 11–12 | fixes, demo rehearsal |
 
@@ -38,6 +38,19 @@ Exit criteria:
 3. The radar view (keep the duel list and the Hotspots table).
 
 Never cut the core of the app's own framework or the deployment: they carry the most points.
+Never cut "Train this spot" or the before/after rate either: they are what other tools don't do.
+
+## What sets DuelLab apart
+
+Other tools replay one death at a time (cs2demo.gg on a local server, Memorin in a browser simulation) or give
+generic drills from aggregate stats (Leetify, Refrag). None of them checks whether training changed the next matches.
+
+- **Pattern:** map + hotspot cell + diagnosis. "Train this spot" builds a set (max 5) from the trainable duels in one pattern.
+- **Before/after rate:** deaths in the pattern per 100 rounds on that map, before and after the set was exported.
+  Below 50 rounds after the export the page shows "not enough data yet"; otherwise it shows both rates and the raw counts,
+  without claiming an improvement.
+- **Pattern check (M4):** parse 10 own demos. If fewer than a third of the lost duels fall into patterns that repeat
+  3 or more times, change the pattern definition (bigger cells, or no diagnosis) before M5.
 
 ## Optional, after M7 if time allows
 

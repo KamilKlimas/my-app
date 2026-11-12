@@ -96,8 +96,8 @@ transaction → `201` with the new id.
 
 | Table | Holds | Foreign keys (ON DELETE, reason) |
 |-------|-------|----------------------------------|
-| `users` | email, password hash, role (USER/ADMIN), locale, weekly-summary opt-in | — |
-| `maps` | name, radar image path, `pos_x`, `pos_y`, `scale` | — |
+| `users` *(exists)* | email, name, password hash, role (USER/ADMIN), locale, weekly-summary opt-in | — |
+| `maps` *(exists)* | name, radar image path, `pos_x`, `pos_y`, `scale` | — |
 | `demos` | file path, status, progress, error, played/uploaded/processed times, raw-file-deleted time | `user_id` CASCADE (a demo means nothing without its owner); `map_id` RESTRICT (a map with demos cannot disappear), NULL until parsed |
 | `duels` | round, ticks, player spawn and death position, view angles, killer position, weapons, measured values, flashed, trainable | `demo_id` CASCADE (duels come from the demo) |
 | `diagnosis_types` | code, severity, translation key | — |
@@ -111,6 +111,17 @@ transaction → `201` with the new id.
 - Transactions: claiming a demo from the queue, and saving a training set with its items.
 
 This table is the source for the graded Mermaid ERD in `README.md`, written once the schema exists.
+
+### Migrations
+
+- The schema is a set of numbered files `docker/db/NNN_verb_object.sql` (three digits, so name order equals number order).
+  Postgres runs them as init scripts, only when the `pg-data` volume is empty.
+- In development a schema change means `docker compose down -v` and a fresh start, which wipes the data. That does not work
+  on a server with real data, so before the deploy (M3) we decide on a small runner (a `schema_migrations` table that records
+  which files have been applied).
+- E-mail uniqueness ignores case through a unique index on `LOWER(email)`, so lookups must compare `LOWER(email)` to use it.
+  Role and locale are `CHECK` lists, not lookup tables: two fixed values each, which no screen edits.
+- `maps.scale` only has to be positive (radar coordinates are divided by it). The 0.1–20 range belongs to the admin form.
 
 ## Domain calculations
 

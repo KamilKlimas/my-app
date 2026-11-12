@@ -43,7 +43,7 @@ nie są ani wygraną, ani przegraną.
 | Backend         | PHP 8.3 (PHP-FPM), własny router i kontrolery         |
 | Frontend        | HTML, czysty CSS                                     |
 | Serwer HTTP     | nginx                                                |
-| Baza danych     | PostgreSQL 17 (jeszcze nieużywana przez aplikację)   |
+| Baza danych     | PostgreSQL 17 (schemat gotowy, aplikacja jeszcze się nie łączy) |
 | Narzędzia       | Composer (autoloading PSR-4), PHPUnit 12, Mailpit, pgAdmin |
 | Konteneryzacja  | Docker, Docker Compose                               |
 
@@ -79,8 +79,9 @@ nie są ani wygraną, ani przegraną.
 | pgAdmin     | http://localhost:5050     |
 | PostgreSQL  | `localhost:5433`          |
 
-Dane bazy leżą w nazwanym wolumenie `pg-data`, więc przeżywają `docker compose down` i ponowne `up`. Skrypty z `docker/db/`
-uruchamiają się tylko na pustym wolumenie. Pustą bazę daje `docker compose down -v`, które **kasuje wszystkie dane**.
+Dane bazy leżą w nazwanym wolumenie `pg-data`, więc przeżywają `docker compose down` i ponowne `up`. Schemat tworzą pliki
+`docker/db/NNN_*.sql`, wykonywane w kolejności nazw, ale tylko na pustym wolumenie. Po zmianie schematu trzeba więc zacząć
+od pustej bazy: `docker compose down -v` (**kasuje wszystkie dane**), a potem `docker compose up -d`.
 
 ## Przydatne polecenia
 

@@ -18,6 +18,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 
 - Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF
   or translation system yet.
+- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); nothing reads them yet.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
   route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`; `tests/Unit/Http/QueryTest.php`
@@ -46,6 +47,8 @@ Any other dependency needs the owner's approval.
 | `pgadmin-wdpai` | pgAdmin, fixed container name `pg-admin`                          | http://localhost:5050 (`PGADMIN_PORT`)        |
 
 - `./docker/db` is the Postgres init-script directory: its `.sql` files run in name order, only on an empty data directory.
+  The schema lives there as `NNN_verb_object.sql` (three digits); a schema change is a new file, never an edit of an
+  applied one. Every FK gets an explicit `ON DELETE` and a comment saying why. Strategy: `docs/architecture.md` → Migrations.
 - Database data lives in the named volume `pg-data`, so it survives `docker compose down` and `up`. Because the volume
   is no longer empty, a new init script in `docker/db/` does not run on its own; only `docker compose down -v` (wipes the data) resets it.
 - The `php` service gets no environment variables yet.
@@ -155,8 +158,7 @@ A `BadRequest` thrown by the action is caught in `public/index.php` → `Default
 
 Don't scaffold these ahead of time. The change that builds an item moves its rules into the sections above.
 
-- Database: schema as numbered SQL files in `docker/db/`, every FK with an explicit `ON DELETE` and a comment saying why;
-  PDO with prepared statements; Mermaid ERD in the README and a full export in `database/duellab.sql`.
+- Database: the remaining tables from `docs/architecture.md`; PDO with prepared statements; Mermaid ERD in the README and a full export in `database/duellab.sql`.
 - Login with USER and ADMIN roles, sessions, CSRF; HTTP exceptions for 400/401/403/404 rendered in one place.
 - Layers Controller → Service → Repository interface, wired by hand (no DI container, service locator or static facades).
 - Translations (`lang/pl.php`, `lang/en.php` via `t('key')`).

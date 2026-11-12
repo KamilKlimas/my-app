@@ -70,6 +70,7 @@ a:hover {
 .button:hover {
   background: color-mix(in srgb, var(--color-accent) 80%, var(--color-hover-mix));
   border-color: color-mix(in srgb, var(--color-accent) 80%, var(--color-hover-mix));
+  text-decoration: none;
 }
 
 .button--ghost:hover {
@@ -79,10 +80,10 @@ a:hover {
 }
 
 .button--outline:hover {
-  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
   border-color: var(--color-accent);
+  box-shadow: 0 0 1.5rem var(--color-glow), 0 0 0.25rem var(--color-glow);
   color: var(--color-accent);
-  text-decoration: none;
 }
 
 .upload-card__action--sample:hover {

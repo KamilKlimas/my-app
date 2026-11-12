@@ -146,6 +146,10 @@
   border-bottom: var(--border-width) solid var(--color-border);
 }
 
+.page-header .button {
+  white-space: nowrap;
+}
+
 .eyebrow {
   margin-bottom: var(--space-2);
   color: var(--color-accent);

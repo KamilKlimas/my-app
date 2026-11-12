@@ -201,6 +201,7 @@
   color: var(--color-accent-ink);
   font: 800 var(--text-sm) / 1 var(--font-heading);
   letter-spacing: 0.1em;
+  text-decoration: none;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -211,12 +212,13 @@
   color: var(--color-text);
 }
 
+/* Frosted surface plus an accent glow, so the outline stays visible on top of the backdrop photo. */
 .button--outline {
-  background: transparent;
+  background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  backdrop-filter: blur(6px);
   border-width: 2px;
+  box-shadow: 0 0 1rem var(--color-glow);
   color: var(--color-accent);
-  text-decoration: none;
-  white-space: nowrap;
 }
 
 .button--small {

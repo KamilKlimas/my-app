@@ -16,6 +16,7 @@
   --color-info: #4aa3ff;
   /* Hover mixes the accent towards this colour: lighter on a dark page, darker on a light one. */
   --color-hover-mix: white;
+  --color-glow: color-mix(in srgb, var(--color-accent) 35%, transparent);
   --backdrop-image: url("/images/backdrop-train.webp");
   --backdrop-veil: 72%;
 
@@ -64,6 +65,7 @@ html[data-theme="light"] {
   --color-success: #185c37;
   --color-info: #22528f;
   --color-hover-mix: black;
+  --color-glow: color-mix(in srgb, var(--color-accent) 70%, transparent);
   --backdrop-image: url("/images/backdrop-nuke.webp");
   --backdrop-veil: 30%;
 }

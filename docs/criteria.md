@@ -118,4 +118,4 @@ Check the project on a clean environment. The grader must be able to clone the r
 - [ ] **35. Variables in .env or Key Vault.** Passwords, tokens, keys and environment-dependent configuration are not written in the code or committed. The repository contains a safe `.env.example` with the names of required variables. Production uses environment variables or a secret manager.
   - DuelLab: `AGENTS.md` → Security.
 - [ ] **36. Deploy.** The app is available at a public address and works outside the author's computer. The deployed version matches the `main` branch, uses production configuration, and has a working database, uploads and required variables. The link and a short description of the deployment are in README.
-  - DuelLab: `roadmap.md` → M3 (first deploy); hosting in Pending decisions.
+  - DuelLab: `roadmap.md` → M3 (first deploy); the hosting is not chosen yet.

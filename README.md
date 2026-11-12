@@ -79,7 +79,8 @@ nie są ani wygraną, ani przegraną.
 | pgAdmin     | http://localhost:5050     |
 | PostgreSQL  | `localhost:5433`          |
 
-Dane bazy trzymane są w anonimowym wolumenie, więc `docker compose down` i ponowne `up` startuje z pustą bazą.
+Dane bazy leżą w nazwanym wolumenie `pg-data`, więc przeżywają `docker compose down` i ponowne `up`. Skrypty z `docker/db/`
+uruchamiają się tylko na pustym wolumenie. Pustą bazę daje `docker compose down -v`, które **kasuje wszystkie dane**.
 
 ## Przydatne polecenia
 

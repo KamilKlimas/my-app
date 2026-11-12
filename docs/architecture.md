@@ -17,7 +17,7 @@ Open questions about languages and libraries are in `roadmap.md` → Pending dec
 |---------------------------------|-------------------------------------------------------|-----------|-----------|
 | `server` (nginx)                | serves `public/`, passes `.php` requests to `php:9000` | 8080      | exists    |
 | `php` (PHP 8.3 FPM)             | the web application                                   | —         | exists    |
-| `db` (PostgreSQL 17)            | data                                                  | 5433      | exists; data is lost on `docker compose down` until the `pg-data` volume is attached (M1) |
+| `db` (PostgreSQL 17)            | data                                                  | 5433      | exists; data persists in the `pg-data` volume |
 | `mailpit`                       | catches e-mail locally; SMTP at `mailpit:1025`        | 8025 (UI) | exists    |
 | `pgadmin-wdpai`                 | database browser, development only                    | 5050      | exists    |
 | worker                          | demo parser, separate container                       | —         | (planned) |

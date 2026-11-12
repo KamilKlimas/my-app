@@ -46,8 +46,8 @@ Any other dependency needs the owner's approval.
 | `pgadmin-wdpai` | pgAdmin, fixed container name `pg-admin`                          | http://localhost:5050 (`PGADMIN_PORT`)        |
 
 - `./docker/db` is the Postgres init-script directory: its `.sql` files run in name order, only on an empty data directory.
-- Database data lives in an **anonymous volume** (`pg-data` is declared but not mounted), so `docker compose down`
-  followed by `up` starts with an empty database.
+- Database data lives in the named volume `pg-data`, so it survives `docker compose down` and `up`. Because the volume
+  is no longer empty, a new init script in `docker/db/` does not run on its own; only `docker compose down -v` (wipes the data) resets it.
 - The `php` service gets no environment variables yet.
 
 ## Commands

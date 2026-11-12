@@ -19,7 +19,7 @@ Exit criteria and progress:
 - [ ] Router handles a static route, a regex route, a validated `{id}` parameter and a query parameter, with 400/404.
   Done: static and `{id}` routes, whitelisted query parameters, 404. Missing: 400 for malformed input.
 - [ ] PostgreSQL runs in Docker Compose with a persistent volume; the first migration and seed load.
-  Not started: `docker/db/` has no SQL files and the data still lives in an anonymous volume.
+  Done: data persists in the `pg-data` volume. Missing: `docker/db/` has no SQL files yet.
 - [ ] PHPUnit runs in the container with first router tests. Not started.
 - [ ] Two-hour time-boxed check of `bot_place` in the game; result recorded in `architecture.md` → Open technical questions.
   Not started.

@@ -60,4 +60,3 @@ networks:
 
 volumes:
   pg-data:
-  ollama_data:

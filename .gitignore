@@ -6,6 +6,7 @@ vendor/
 node_modules/
 docker/data/
 CLAUDE.local.md
+notes/
 
 # Claude Code: share only settings.json and skills ("!.claude/" overrides a global ignore)
 !.claude/

@@ -39,10 +39,26 @@ Exit criteria:
 
 Never cut the core of the app's own framework or the deployment: they carry the most points.
 
+## Optional, after M7 if time allows
+
+Both only add a new way for demos to reach the existing queue; the worker and the analysis stay the same.
+
+- **Link a Steam account and detect new matches.** Steam OpenID 2.0 adds a "Connect Steam" button to the password
+  account (the password login stays, it carries the login criterion) and stores the SteamID64. With the user's Game
+  Authentication Code and one match share code, a scheduled job calls `GetNextMatchSharingCode` and lists new Premier
+  and Competitive matches. The user still downloads the demo in CS2 and uploads it.
+- **Detect new FACEIT matches.** The FACEIT Data API (standard key) finds the player by SteamID64 and lists their matches
+  with a link to the match room, where the user downloads the demo and uploads it.
+
+Needs: `users.steam_id`, `demos.source` and a unique `demos.external_match_id`, `STEAM_API_KEY` and `FACEIT_API_KEY`
+in `.env.example`.
+
 ## Out of scope this semester
 
 - Valorant: Riot's API needs a production key and player sign-in through Riot.
 - Automatic demo download from Steam (needs a bot talking to Valve's game coordinator).
+- Automatic demo download from FACEIT: the Downloads API needs an approved application (about 30 days) and has no
+  public price; FACEIT moved demo downloads to a paid model in 2024.
 - A native mobile app: the web app is responsive instead.
 - Comparing players with each other: needs data from many users.
 - Rank prediction and generic aim statistics: Leetify already covers them.

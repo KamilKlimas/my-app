@@ -19,7 +19,8 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF
   or translation system yet.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
-  notices and deprecations), but there are no tests yet.
+  notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
+  route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
@@ -172,6 +173,7 @@ A new playbook is added in the change that builds the area it covers.
 | Skill       | Use when                                                     |
 |-------------|--------------------------------------------------------------|
 | `add-route` | adding or changing a page, form endpoint or controller action |
+| `add-unit-test` | writing, extending or fixing PHPUnit unit tests              |
 
 ## Working rules for agents
 

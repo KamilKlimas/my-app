@@ -43,7 +43,7 @@ nie są ani wygraną, ani przegraną.
 | Frontend        | HTML, czysty CSS                                     |
 | Serwer HTTP     | nginx                                                |
 | Baza danych     | PostgreSQL 17 (jeszcze nieużywana przez aplikację)   |
-| Narzędzia       | Composer (autoloading PSR-4), Mailpit, pgAdmin       |
+| Narzędzia       | Composer (autoloading PSR-4), PHPUnit 12, Mailpit, pgAdmin |
 | Konteneryzacja  | Docker, Docker Compose                               |
 
 ## Szybki start
@@ -89,6 +89,16 @@ docker compose exec -T php php -l src/Routing.php   # sprawdzenie składni pliku
 docker compose exec -T php composer dump-autoload   # po zmianie autoloadingu
 curl -i http://localhost:8080/demos/1               # sprawdzenie trasy i kodu odpowiedzi
 ```
+
+## Testy
+
+Testy jednostkowe (PHPUnit 12) leżą w `tests/Unit/`, a konfiguracja w `phpunit.xml`. Uruchamia się je w kontenerze `php`:
+
+```bash
+docker compose exec -T php vendor/bin/phpunit
+```
+
+Test kończy się porażką także wtedy, gdy kod wywoła warning, notice albo deprecation PHP.
 
 ## Zasady developmentu
 

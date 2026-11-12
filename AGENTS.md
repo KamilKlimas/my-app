@@ -16,8 +16,10 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 
 ## Current state (after lab 5: light and dark theme)
 
-- Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF,
-  translation system, test suite or `.env.example` yet.
+- Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF
+  or translation system yet.
+- PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
+  notices and deprecations), but there are no tests yet.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
@@ -29,7 +31,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 ## Stack and services
 
 PHP 8.3 (FPM on Alpine) behind nginx, PostgreSQL 17, plain CSS, Docker Compose for everything; no frontend or CSS libraries.
-Composer is used only for PSR-4 autoloading so far. Allowed packages when needed: `phpunit/phpunit` (dev), `phpmailer/phpmailer`.
+Composer handles PSR-4 autoloading (`App\Tests\` → `tests/` only in `autoload-dev`) and the dev dependency PHPUnit. Allowed packages when needed: `phpunit/phpunit` (dev), `phpmailer/phpmailer`.
 Any other dependency needs the owner's approval.
 
 | Service         | Purpose                                                           | Local address (default port, `.env` variable) |
@@ -52,6 +54,7 @@ docker compose up --build -d                                   # start
 docker compose ps                                              # what is running
 docker compose exec -T php php -l path/to/File.php             # syntax check, every changed PHP file
 docker compose exec -T php composer dump-autoload              # after changing autoload in composer.json
+docker compose exec -T php vendor/bin/phpunit                  # unit tests
 docker compose logs -f php server                              # logs
 docker compose exec -T db sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"'   # SQL shell
 curl -i http://localhost:8080/demos/1                          # check a route and its status code
@@ -74,7 +77,8 @@ docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Post
 docker-compose.yaml           services
 docs/                         product overview, architecture, roadmap, grading criteria
 public/AGENTS.md, src/AGENTS.md   extra rules for those folders (this file wins if they disagree)
-composer.json                 PSR-4: App\Controller\ → src/controllers/, App\ → src/
+composer.json                 PSR-4: App\Controller\ → src/controllers/, App\ → src/; dev: App\Tests\ → tests/
+phpunit.xml                   PHPUnit config: suite tests/Unit, strict failure flags, source src/
 ```
 
 ## How a request works

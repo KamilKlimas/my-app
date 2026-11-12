@@ -113,7 +113,7 @@ nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new
   `variables` (tokens) → `base` (reset, elements) → `layout` (top bar, header, nav, footer) → `components` → `demos` (demos page)
   → `upload` (start page) → `states` (hover, `:focus-visible`, state classes) → `responsive` (breakpoint `max-width: 48rem`).
   Page-specific styles get their own `<page>.css`, linked before `states.css`.
-- Colours only through tokens: `:root` holds the dark (default) values, `html[data-theme="light"]` overrides colour tokens only.
+- Colours only through tokens: `:root` holds the dark (default) values, `html[data-theme="light"]` overrides colour and backdrop tokens only (`--backdrop-image`, `--backdrop-veil`: the page photo in `public/images/` and how strongly it fades into the background).
   A new colour token gets a value in both blocks. The PL/EN switch in the header isn't wired yet.
 - Every view works at 360 px, 768 px and 1440 px without horizontal scrolling.
 

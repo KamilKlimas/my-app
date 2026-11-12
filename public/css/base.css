@@ -9,6 +9,8 @@ html {
 }
 
 body {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -16,6 +18,18 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
   font: 400 var(--text-md) / 1.5 var(--font-body);
+}
+
+/* The veil fades the photo into --color-bg, so content below the first screen sits on a plain background. */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: min(100vh, 60rem);
+  background:
+    linear-gradient(color-mix(in srgb, var(--color-bg) var(--backdrop-veil), transparent), var(--color-bg)),
+    var(--backdrop-image) center top / cover no-repeat;
 }
 
 h1,

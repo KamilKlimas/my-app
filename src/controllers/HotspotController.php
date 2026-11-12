@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\Query;
+
 final class HotspotController extends AppController
 {
     private const USER = ['name' => 'nightowl', 'role' => 'USER'];
@@ -43,11 +45,12 @@ final class HotspotController extends AppController
 
     public function index(): void
     {
+        $query = new Query($_GET);
         $filters = [];
         $selected = [];
 
         foreach (self::OPTIONS as $name => $filter) {
-            $value = (string) ($_GET[$name] ?? self::DEFAULTS[$name]);
+            $value = $query->string($name, self::DEFAULTS[$name]);
             $value = array_key_exists($value, $filter['options']) ? $value : self::DEFAULTS[$name];
 
             $selected[$name] = $value;

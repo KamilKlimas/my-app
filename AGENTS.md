@@ -20,13 +20,15 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   or translation system yet.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
-  route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`.
+  route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`; `tests/Unit/Http/QueryTest.php`
+  covers reading query parameters.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
 - Forms in the templates (`/login`, `/logout`, demo upload, `/admin/maps`, ...) post to routes that don't exist yet, so they get 404.
 - `/` renders the start page (`DemoController::upload`: upload form, how it works, detected mistakes); `/demos` is "My demos"
-  (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render `not-found` with the shared partials.
+  (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
+  a malformed query parameter (`?map[]=x`) renders it with 400.
 - UI text is hard-coded: the login page is Polish, the other pages English.
 
 ## Stack and services
@@ -74,6 +76,7 @@ public/css/                   stylesheets, linked by the header partial
 public/js/                    browser scripts, loaded as modules by the footer partial (theme.js)
 src/Routing.php               App\Routing: get()/post() routes, {param} placeholders, dispatch()
 src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
+src/Http/                     App\Http\Query (typed $_GET access), BadRequest (exception → 400)
 docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Postgres init scripts)
 docker-compose.yaml           services
 docs/                         product overview, architecture, roadmap, grading criteria
@@ -86,6 +89,7 @@ phpunit.xml                   PHPUnit config: suite tests/Unit, strict failure f
 
 nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new XController()` → action → `AppController::render()`
 → template in `public/views/` with the partials. No route matched → `DefaultController::notFound()` with status 404.
+A `BadRequest` thrown by the action is caught in `public/index.php` → `DefaultController::badRequest()` with status 400.
 
 - **Routes:** `$routing->get('/demos/{id}', DemoController::class, 'show');` in `public/index.php`. `{name}` matches digits only,
   is cast to `int` and passed as a **named argument**, so the action parameter must have the same name (`show(int $id)`).
@@ -94,7 +98,9 @@ nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new
   `$this->render('<template>', [...])`. Usual variables: `pageTitle` (required by the header), `activeNav`
   (`demos|hotspots|training|admin`), `user` (`['name' => ..., 'role' => 'USER'|'ADMIN']`, `null` hides the nav).
 - **Missing record:** `http_response_code(404); (new DefaultController())->notFound(); return;`.
-- **Query parameters** are read from `$_GET` in the controller and accepted only from a whitelist, with a default (`HotspotController`).
+- **Query parameters** are read through `new Query($_GET)` in the controller and accepted only from a whitelist,
+  with a default (`HotspotController`). A non-string value (`?map[]=x`) throws `BadRequest` → 400; an unknown value
+  falls back to the default. Read the query before `render()`, otherwise part of the page is sent before the error page.
 
 ## Conventions
 
@@ -124,7 +130,8 @@ nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new
 
 **HTTP**
 - Status codes: malformed input → 400; not logged in → 401 for `/api/*`, redirect to `/login` for pages; logged in but not allowed → 403;
-  missing record → 404. Today only 404 exists: `/demos/abc` matches no route, `/demos/0` and unknown ids render the not-found page.
+  missing record → 404. Today 400 and 404 exist: `/demos/abc` matches no route, `/demos/0` and unknown ids render the 404 error page,
+  a non-string query parameter renders the 400 one.
 - After a successful POST, redirect (Post/Redirect/Get) instead of rendering.
 
 ## Security (non-negotiable)

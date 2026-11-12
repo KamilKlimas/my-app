@@ -30,6 +30,7 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404.
 | każda inna         | `DefaultController::notFound`  | strona 404                                     |
 
 `{id}` dopasowuje tylko cyfry, więc np. `/demos/abc` nie pasuje do żadnej trasy i zwraca 404.
+Parametr query podany jako tablica (np. `/demos?map[]=x`) kończy się stroną 400 (`DefaultController::badRequest`).
 
 Filtr na `/demos` to zwykły formularz GET: `map` przyjmuje `all` albo mapę obecną na liście dem, `outcome` przyjmuje
 `all`, `win` lub `loss`. Każda inna wartość wraca do `all`. Dema bez wyniku (w trakcie parsowania lub z błędem)
@@ -124,6 +125,7 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   └── views/              # szablony stron + partials/ (header, footer, upload-form)
 ├── src/
 │   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
+│   ├── Http/               # Query (odczyt $_GET), BadRequest (wyjątek → 400)
 │   └── Routing.php         # router GET/POST z parametrami {param}
 ├── composer.json           # autoloading PSR-4
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai

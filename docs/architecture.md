@@ -38,6 +38,10 @@ public/index.php → src/Routing.php → controller → service → repository i
 - Services *(planned)* hold business logic: upload checks, diagnosis, scenario generation, `.cfg` export, e-mail.
 - Repositories *(planned)* are the only place with SQL, each behind an interface.
 - Objects are wired by hand in `public/index.php`. No DI container, because it is easier to explain at the demo.
+- Malformed vs unknown query input (M1): a parameter that is not a string (`?map[]=x`, PHP turns it into an array)
+  cannot be interpreted, so it is 400. A string outside the whitelist (`?map=foo`) falls back to the default, so an
+  old or hand-edited link still opens the page. `BadRequest` is caught in `public/index.php`, one place for the 400 page;
+  M2 generalises it to 401/403/404.
 
 ## Request flows
 

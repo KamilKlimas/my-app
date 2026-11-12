@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\Query;
+
 final class DemoController extends AppController
 {
     private const USER = ['name' => 'nightowl', 'role' => 'USER'];
@@ -82,8 +84,9 @@ final class DemoController extends AppController
     /** @return array{map: string, outcome: string} */
     private function selectedFilters(): array
     {
-        $map = (string) ($_GET['map'] ?? 'all');
-        $outcome = (string) ($_GET['outcome'] ?? 'all');
+        $query = new Query($_GET);
+        $map = $query->string('map', 'all');
+        $outcome = $query->string('outcome', 'all');
 
         return [
             'map' => in_array($map, self::mapNames(), true) ? $map : 'all',
@@ -131,7 +134,7 @@ final class DemoController extends AppController
                 'tags' => ['Killed from behind'], 'trainable' => false, 'note' => 'Excluded: not trainable'],
         ];
 
-        $requestedRound = (int) ($_GET['round'] ?? 5);
+        $requestedRound = (int) (new Query($_GET))->string('round', '5');
         $selectedDuel = $duels[1];
 
         foreach ($duels as $duel) {

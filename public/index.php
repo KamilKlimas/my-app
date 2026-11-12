@@ -8,6 +8,7 @@ use App\Controller\DemoController;
 use App\Controller\HotspotController;
 use App\Controller\SecurityController;
 use App\Controller\TrainingController;
+use App\Http\BadRequest;
 use App\Routing;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
@@ -22,10 +23,17 @@ $routing->get('/training', TrainingController::class, 'index');
 $routing->get('/admin', AdminController::class, 'index');
 $routing->get('/', DemoController::class, 'upload');
 
-$routeFound = $routing->dispatch(
-    $_SERVER['REQUEST_METHOD'],
-    $_SERVER['REQUEST_URI'],
-);
+try {
+    $routeFound = $routing->dispatch(
+        $_SERVER['REQUEST_METHOD'],
+        $_SERVER['REQUEST_URI'],
+    );
+} catch (BadRequest) {
+    http_response_code(400);
+    (new DefaultController())->badRequest();
+
+    return;
+}
 
 if (!$routeFound) {
     http_response_code(404);

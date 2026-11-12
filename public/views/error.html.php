@@ -3,9 +3,9 @@
     <main class="page">
         <header class="page-header">
             <div>
-                <p class="eyebrow">Error 404</p>
+                <p class="eyebrow">Error <?= (int) $statusCode ?></p>
                 <h1 class="page-title"><?= $e($pageTitle) ?></h1>
-                <p class="page-lead">This page doesn't exist or the record was removed.</p>
+                <p class="page-lead"><?= $e($lead) ?></p>
             </div>
             <a class="page-header__link" href="/demos">Back to my demos</a>
         </header>

@@ -122,6 +122,9 @@ This table is the source for the graded Mermaid ERD in `README.md`, written once
 - E-mail uniqueness ignores case through a unique index on `LOWER(email)`, so lookups must compare `LOWER(email)` to use it.
   Role and locale are `CHECK` lists, not lookup tables: two fixed values each, which no screen edits.
 - `maps.scale` only has to be positive (radar coordinates are divided by it). The 0.1–20 range belongs to the admin form.
+- Demo data lives in `900_seed_demo_data.sql`; the high number keeps it after every migration. It uses `ON CONFLICT DO NOTHING`,
+  so it can be re-run by hand. It contains demo accounts with a public password, so the production deploy (M3) must not
+  load it as is: split maps from accounts or skip the file.
 
 ## Domain calculations
 

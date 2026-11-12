@@ -83,6 +83,17 @@ Dane bazy leżą w nazwanym wolumenie `pg-data`, więc przeżywają `docker comp
 `docker/db/NNN_*.sql`, wykonywane w kolejności nazw, ale tylko na pustym wolumenie. Po zmianie schematu trzeba więc zacząć
 od pustej bazy: `docker compose down -v` (**kasuje wszystkie dane**), a potem `docker compose up -d`.
 
+Po migracjach wykonuje się seed `docker/db/900_seed_demo_data.sql`. Numer 900 sprawia, że idzie po każdej migracji.
+Seed wstawia mapy `de_ancient`, `de_anubis`, `de_dust2`, `de_inferno`, `de_mirage` i `de_nuke` z kalibracją radaru
+oraz dwa konta demo. Logowania jeszcze nie ma, więc konta przydadzą się dopiero od M2:
+
+| E-mail                 | Hasło      | Rola  |
+|------------------------|------------|-------|
+| `nightowl@example.com` | `demo1234` | USER  |
+| `admin@example.com`    | `demo1234` | ADMIN |
+
+Hasło jest publiczne, więc służy tylko do demo. W bazie leży wyłącznie jego hash.
+
 ## Przydatne polecenia
 
 ```bash

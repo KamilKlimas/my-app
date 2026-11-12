@@ -19,6 +19,8 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF
   or translation system yet.
 - The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); nothing reads them yet.
+  `docker/db/900_seed_demo_data.sql` runs after every migration and inserts six maps and two demo accounts (`ON CONFLICT DO NOTHING`,
+  so it can be re-run by hand). It holds only bcrypt hashes; the demo password is in the README.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
   route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`; `tests/Unit/Http/QueryTest.php`

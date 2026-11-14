@@ -39,7 +39,7 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 
 - A `{param}` placeholder matches digits only, so a non-numeric id (`/demos/abc`) matches no route and ends as 404.
   Missing record → 404. Malformed query or body input → 400, logged-in user without rights → 403,
-  not logged in → 401 for `/api/*` or a redirect to `/login` for pages (400, 403 and 404 exist so far).
+  not logged in → 401 for `/api/*` or a redirect to `/login` for pages (400, 403 and 404 exist so far). A failed database connection → 503.
 - Error statuses are thrown as `App\Http\HttpException` subclasses and rendered only in `public/index.php`;
   redirects are thrown as `App\Http\Redirect` (303, local paths only).
 - No `die()`, `exit`, `var_dump` or `print_r` in committed code. Errors end with a proper HTTP status and a user-friendly page.

@@ -8,6 +8,7 @@ use App\Http\BadRequest;
 use App\Http\Forbidden;
 use App\Http\HttpException;
 use App\Http\NotFound;
+use App\Http\ServiceUnavailable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -19,6 +20,7 @@ final class HttpExceptionTest extends TestCase
             'bad request' => [new BadRequest(), 400],
             'forbidden' => [new Forbidden(), 403],
             'not found' => [new NotFound(), 404],
+            'service unavailable' => [new ServiceUnavailable(), 503],
         ];
     }
 

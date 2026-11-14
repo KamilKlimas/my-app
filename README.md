@@ -30,7 +30,7 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404.
 | każda inna         | `DefaultController::error`     | strona 404                                     |
 
 `{id}` dopasowuje tylko cyfry, więc np. `/demos/abc` nie pasuje do żadnej trasy i zwraca 404.
-Parametr query podany jako tablica (np. `/demos?map[]=x`) kończy się stroną 400. Każdy błąd (400, 403, 404) to wyjątek `HttpException`, który `public/index.php`
+Parametr query podany jako tablica (np. `/demos?map[]=x`) kończy się stroną 400. Każdy błąd (400, 403, 404, 503) to wyjątek `HttpException`, który `public/index.php`
 łapie w jednym miejscu i renderuje przez `DefaultController::error`.
 
 Filtr na `/demos` to zwykły formularz GET: `map` przyjmuje `all` albo mapę obecną na liście dem, `outcome` przyjmuje
@@ -44,7 +44,7 @@ nie są ani wygraną, ani przegraną.
 | Backend         | PHP 8.3 (PHP-FPM), własny router i kontrolery         |
 | Frontend        | HTML, czysty CSS                                     |
 | Serwer HTTP     | nginx                                                |
-| Baza danych     | PostgreSQL 17 (schemat gotowy, aplikacja jeszcze się nie łączy) |
+| Baza danych     | PostgreSQL 17 (PDO; aplikacja łączy się, ale jeszcze nie czyta danych) |
 | Narzędzia       | Composer (autoloading PSR-4), PHPUnit 12, Mailpit, pgAdmin |
 | Konteneryzacja  | Docker, Docker Compose                               |
 
@@ -78,6 +78,9 @@ nie są ani wygraną, ani przegraną.
    ```
 
    Przy pierwszym starcie kontener `php` sam wykona `composer install`, jeśli brakuje katalogu `vendor/`.
+   Kontener `php` startuje dopiero, gdy baza przejdzie healthcheck (`pg_isready`). Dostaje z `.env` tylko dane bazy
+   (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` jako `DB_NAME`, `DB_USER`, `DB_PASSWORD`). Gdy baza nie działa,
+   każda strona zwraca 503, a przyczyna trafia do `docker compose logs php`.
 
 | Usługa      | Adres                     |
 |-------------|---------------------------|
@@ -147,9 +150,10 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   └── views/              # szablony stron + partials/ (header, footer, upload-form)
 ├── src/
 │   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
-│   ├── Http/               # Query (odczyt $_GET), wyjątki HTTP (400/403/404), Redirect (303)
+│   ├── Http/               # Query (odczyt $_GET), wyjątki HTTP (400/403/404/503), Redirect (303)
+│   ├── Database/           # DatabaseConfig (zmienne DB_*), ConnectionFactory (PDO)
 │   └── Routing.php         # router GET/POST z parametrami {param}
-├── tests/Unit/             # testy PHPUnit (router, Query, wyjątki HTTP, Redirect)
+├── tests/Unit/             # testy PHPUnit (router, Query, wyjątki HTTP, Redirect, DatabaseConfig)
 ├── composer.json           # autoloading PSR-4, PHPUnit jako zależność dev
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
 ├── phpunit.xml             # konfiguracja testów

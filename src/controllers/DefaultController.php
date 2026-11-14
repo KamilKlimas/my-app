@@ -21,6 +21,10 @@ final class DefaultController extends AppController
             'title' => 'Page not found',
             'lead' => "This page doesn't exist or the record was removed.",
         ],
+        503 => [
+            'title' => 'Service unavailable',
+            'lead' => 'DuelLab cannot reach its database right now. Try again in a moment.',
+        ],
     ];
 
     public function error(HttpException $error): void

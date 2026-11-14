@@ -26,6 +26,21 @@ Undecided technical points are listed at the end of this file, in Open technical
 Services talk over the `pg-network` network by service name, so the app reaches the database at `db:5432`, not
 `localhost:5433`. Variables and ports are listed in `.env.example`.
 
+### Database connection
+
+- `php` receives an explicit list of variables (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`), not the whole `.env`,
+  so it never sees secrets of other services (least privilege). Host and port are fixed in compose: they are the Docker network
+  address, not secrets.
+- The app reads them with `getenv()`, not `$_ENV`: `$_ENV` stays empty when `variables_order` lacks `E` (as in `php.ini-production`).
+  PHP-FPM passes the container environment because the official image sets `clear_env = no`. A missing or empty variable
+  fails at startup with its name, never its value.
+- One `PDO` per request, created eagerly in `public/index.php` and passed down by hand (no singleton). One connection per request
+  is cheap at this scale; lazy creation would add complexity for no measurable gain.
+- Options: `ERRMODE_EXCEPTION`, `FETCH_ASSOC`, `EMULATE_PREPARES => false` (real server-side prepared statements).
+- A `PDOException` while connecting is logged with `error_log()` and replaced by `ConnectionFailed` without `previous`, so the DSN
+  never reaches the page. `public/index.php` maps it to 503 (`ServiceUnavailable`): the outage is temporary and on a dependency's side.
+  The database layer itself does not know about HTTP.
+
 ## Layers
 
 ```

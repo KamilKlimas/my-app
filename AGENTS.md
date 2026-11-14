@@ -16,15 +16,17 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 
 ## Current state (after M1: foundations; lab 5: light and dark theme)
 
-- Pages render hard-coded mock data defined in the controllers. There is no database access, login, session, CSRF
-  or translation system yet.
+- Pages render hard-coded mock data defined in the controllers. There is no login, session, CSRF or translation system yet.
+- `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
+  but nothing queries it yet. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
 - The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); nothing reads them yet.
   `docker/db/900_seed_demo_data.sql` runs after every migration and inserts six maps and two demo accounts (`ON CONFLICT DO NOTHING`,
   so it can be re-run by hand). It holds only bcrypt hashes; the demo password is in the README.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
   route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`; `tests/Unit/Http/QueryTest.php`
-  covers reading query parameters; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets.
+  covers reading query parameters; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
+  `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
@@ -32,7 +34,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - `/` renders the start page (`DemoController::upload`: upload form, how it works, detected mistakes); `/demos` is "My demos"
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
   a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
-  rendered in one place; `Forbidden` (403) and `Redirect` exist but no route uses them yet.
+  rendered in one place; `Forbidden` (403) and `Redirect` exist but no route uses them yet. `ServiceUnavailable` (503) covers a failed database connection.
 - UI text is hard-coded: the login page is Polish, the other pages English.
 
 ## Stack and services
@@ -54,7 +56,8 @@ Any other dependency needs the owner's approval.
   applied one. Every FK gets an explicit `ON DELETE` and a comment saying why. Strategy: `docs/architecture.md` → Migrations.
 - Database data lives in the named volume `pg-data`, so it survives `docker compose down` and `up`. Because the volume
   is no longer empty, a new init script in `docker/db/` does not run on its own; only `docker compose down -v` (wipes the data) resets it.
-- The `php` service gets no environment variables yet.
+- The `php` service gets only `DB_HOST`, `DB_PORT` (fixed: `db`, `5432`) and `DB_NAME`, `DB_USER`, `DB_PASSWORD` (from the `POSTGRES_*`
+  values in `.env`), as an explicit `environment:` list, not `env_file`. It starts only after the `db` healthcheck (`pg_isready`) passes.
 
 ## Commands
 
@@ -82,8 +85,9 @@ public/css/                   stylesheets, linked by the header partial
 public/js/                    browser scripts, loaded as modules by the footer partial (theme.js)
 src/Routing.php               App\Routing: get()/post() routes, {param} placeholders, dispatch()
 src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
-src/Http/                     App\Http\Query (typed $_GET access), HttpException + BadRequest/Forbidden/NotFound
-                              (400/403/404), Redirect (303 to a local path)
+src/Http/                     App\Http\Query (typed $_GET access), HttpException + BadRequest/Forbidden/NotFound/ServiceUnavailable
+                              (400/403/404/503), Redirect (303 to a local path)
+src/Database/                 App\Database\DatabaseConfig (DB_* variables, DSN), ConnectionFactory (PDO), ConnectionFailed
 docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Postgres init scripts)
 docker-compose.yaml           services
 docs/                         product overview, architecture, roadmap, grading criteria
@@ -96,7 +100,8 @@ phpunit.xml                   PHPUnit config: suite tests/Unit, strict failure f
 
 nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new XController()` → action → `AppController::render()`
 → template in `public/views/` with the partials. No route matched → `public/index.php` throws `NotFound`.
-One `try` in `public/index.php` catches `Redirect` (`Location` + 303) and any `HttpException` → `DefaultController::error()`,
+One `try` in `public/index.php` first opens the database connection, then dispatches. It catches `Redirect` (`Location` + 303),
+any `HttpException` and `ConnectionFailed` (as `ServiceUnavailable`) → `DefaultController::error()`,
 which sets the status and renders the `error` page. Throw before `render()`, otherwise part of the page is already sent.
 
 - **Routes:** `$routing->get('/demos/{id}', DemoController::class, 'show');` in `public/index.php`. `{name}` matches digits only,

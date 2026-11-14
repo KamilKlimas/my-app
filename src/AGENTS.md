@@ -14,8 +14,9 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 ## Classes
 
 - New logic goes into a class with one clear responsibility. No free functions, no logic in the global scope.
-- Controllers take no constructor arguments, because the router creates them with `new $class()`.
-  Other classes (services, repositories) receive their collaborators through the constructor.
+- A controller without collaborators is registered by class name (the router calls `new $class()`). One that needs
+  collaborators takes them through its constructor and is registered with a factory closure in `public/index.php`.
+  Other classes (services, repositories) also receive their collaborators through the constructor.
 - Controllers and data access talk through interfaces once repositories exist.
 
 <!-- TODO: say where objects are created and wired together (e.g. in `public/index.php`). -->

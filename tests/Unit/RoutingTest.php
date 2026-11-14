@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit;
 
 use App\Routing;
+use App\Tests\Unit\Fixture\InjectedController;
 use App\Tests\Unit\Fixture\SpyController;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -97,6 +98,37 @@ final class RoutingTest extends TestCase
     public function testControllerOutsideAppControllerThrows(): void
     {
         $this->routing->get('/demos', \stdClass::class, 'index');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Invalid controller');
+        $this->routing->dispatch('GET', '/demos');
+    }
+
+    public function testFactoryRouteCallsActionOnControllerFromFactory(): void
+    {
+        $this->routing->get('/demos', static fn (): InjectedController => new InjectedController('injected'), 'index');
+
+        $this->expectOutputString('injected');
+        $this->assertTrue($this->routing->dispatch('GET', '/demos'));
+    }
+
+    public function testFactoryIsNotCalledWhenRouteDoesNotMatch(): void
+    {
+        $factoryCalled = false;
+        $this->routing->get('/demos', static function () use (&$factoryCalled): InjectedController {
+            $factoryCalled = true;
+
+            return new InjectedController('injected');
+        }, 'index');
+
+        $this->routing->dispatch('GET', '/hotspots');
+
+        $this->assertFalse($factoryCalled);
+    }
+
+    public function testFactoryReturningNonAppControllerThrows(): void
+    {
+        $this->routing->get('/demos', static fn (): \stdClass => new \stdClass(), 'index');
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Invalid controller');

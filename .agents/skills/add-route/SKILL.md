@@ -36,7 +36,8 @@ $routing->post('/demos/{id}/delete', DemoController::class, 'delete');
 ## 3. Controller action
 
 In `src/controllers/<Area>Controller.php`: `namespace App\Controller;`, `final class <Area>Controller extends AppController`.
-The router creates controllers with `new $class()`, so they can't take constructor arguments.
+Register a controller by class name (the router calls `new $class()`). If it needs collaborators, it takes them through
+its constructor and the route gets a factory closure instead: `$routing->get('/x', fn () => new XController($service), 'index');`.
 
 Read input → validate → render.
 

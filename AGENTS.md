@@ -107,7 +107,8 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 - **Routes:** `$routing->get('/demos/{id}', DemoController::class, 'show');` in `public/index.php`. `{name}` matches digits only,
   is cast to `int` and passed as a **named argument**, so the action parameter must have the same name (`show(int $id)`).
   The first matching route wins; keep `/` last.
-- **Controllers** extend `AppController`, have no constructor arguments (the router does `new $class()`) and end with
+- **Controllers** extend `AppController` and are registered by class name (the router does `new $class()`) or, when they
+  need collaborators, by a factory closure (`fn () => new XController($service)`), called only for the matched route. They end with
   `$this->render('<template>', [...])`. Usual variables: `pageTitle` (required by the header), `activeNav`
   (`demos|hotspots|training|admin`), `user` (`['name' => ..., 'role' => 'USER'|'ADMIN']`, `null` hides the nav).
 - **Missing record:** `throw new NotFound();`. A new status gets its own `HttpException` subclass and a title and lead

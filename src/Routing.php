@@ -10,12 +10,12 @@ final class Routing
 {
     private array $routes = [];
 
-    public function get(string $path, string $controller, string $action): void
+    public function get(string $path, string|\Closure $controller, string $action): void
     {
         $this->add('GET', $path, $controller, $action);
     }
 
-    public function post(string $path, string $controller, string $action): void
+    public function post(string $path, string|\Closure $controller, string $action): void
     {
         $this->add('POST', $path, $controller, $action);
     }
@@ -23,7 +23,7 @@ final class Routing
     private function add(
         string $method,
         string $path,
-        string $controller,
+        string|\Closure $controller,
         string $action,
     ): void {
         $this->routes[] = [
@@ -34,11 +34,6 @@ final class Routing
         ];
     }
 
-	/* 
-	Funkcja dzieli ścieżkę na fragmenty. Zwykłe fragmenty pozostawia bez zmian, 
-	a fragment zapisany w klamrach, na przykład {id}, zamienia na nazwany 
-	parametr przyjmujący cyfry. Następnie ponownie składa ścieżkę w wyrażenie regularne.
-	*/
     private function createPattern(string $path): string
     {
         $parts = explode('/', $path);
@@ -82,18 +77,23 @@ final class Routing
                 $parameters,
             );
 
-            $controllerClass = $route['controller'];
-            $controller = new $controllerClass();
-
-            if (!$controller instanceof AppController) {
-                throw new \RuntimeException('Invalid controller');
-            }
-
+            $controller = $this->createController($route['controller']);
             $controller->{$route['action']}(...$parameters);
 
             return true;
         }
 
         return false;
+    }
+
+    private function createController(string|\Closure $controller): AppController
+    {
+        $instance = $controller instanceof \Closure ? $controller() : new $controller();
+
+        if (!$instance instanceof AppController) {
+            throw new \RuntimeException('Invalid controller');
+        }
+
+        return $instance;
     }
 }

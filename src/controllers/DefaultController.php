@@ -4,23 +4,35 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\HttpException;
+
 final class DefaultController extends AppController
 {
-    public function notFound(): void
-    {
-        $this->render('error', [
-            'pageTitle' => 'Page not found',
-            'statusCode' => 404,
-            'lead' => "This page doesn't exist or the record was removed.",
-        ]);
-    }
-
-    public function badRequest(): void
-    {
-        $this->render('error', [
-            'pageTitle' => 'Bad request',
-            'statusCode' => 400,
+    private const PAGES = [
+        400 => [
+            'title' => 'Bad request',
             'lead' => 'The address has a malformed parameter. Check the link or start again from your demos.',
+        ],
+        403 => [
+            'title' => 'Access denied',
+            'lead' => "You don't have permission to do this.",
+        ],
+        404 => [
+            'title' => 'Page not found',
+            'lead' => "This page doesn't exist or the record was removed.",
+        ],
+    ];
+
+    public function error(HttpException $error): void
+    {
+        $statusCode = $error->statusCode();
+        $page = self::PAGES[$statusCode];
+
+        http_response_code($statusCode);
+        $this->render('error', [
+            'pageTitle' => $page['title'],
+            'statusCode' => $statusCode,
+            'lead' => $page['lead'],
         ]);
     }
 }

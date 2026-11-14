@@ -40,8 +40,12 @@ public/index.php → src/Routing.php → controller → service → repository i
 - Objects are wired by hand in `public/index.php`. No DI container, because it is easier to explain at the demo.
 - Malformed vs unknown query input (M1): a parameter that is not a string (`?map[]=x`, PHP turns it into an array)
   cannot be interpreted, so it is 400. A string outside the whitelist (`?map=foo`) falls back to the default, so an
-  old or hand-edited link still opens the page. `BadRequest` is caught in `public/index.php`, one place for the 400 page;
-  M2 generalises it to 401/403/404.
+  old or hand-edited link still opens the page. `BadRequest` is one of the `HttpException` subclasses.
+- HTTP errors as exceptions (M2): an action, and later a guard or the CSRF check, stops the request by throwing
+  `BadRequest`, `Forbidden` or `NotFound`; `public/index.php` catches `HttpException` once and renders the error page.
+  A redirect is a thrown `Redirect` (303 See Other, local path only), because `exit` is banned and cannot be tested.
+  Returning a response object instead would change every action and the router. `Unauthorized` (401) comes with the guards,
+  since pages redirect to `/login` and there is no `/api/` yet.
 
 ## Request flows
 

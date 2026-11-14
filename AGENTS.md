@@ -24,14 +24,15 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
   route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`; `tests/Unit/Http/QueryTest.php`
-  covers reading query parameters.
+  covers reading query parameters; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
 - Forms in the templates (`/login`, `/logout`, demo upload, `/admin/maps`, ...) post to routes that don't exist yet, so they get 404.
 - `/` renders the start page (`DemoController::upload`: upload form, how it works, detected mistakes); `/demos` is "My demos"
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
-  a malformed query parameter (`?map[]=x`) renders it with 400.
+  a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
+  rendered in one place; `Forbidden` (403) and `Redirect` exist but no route uses them yet.
 - UI text is hard-coded: the login page is Polish, the other pages English.
 
 ## Stack and services
@@ -81,7 +82,8 @@ public/css/                   stylesheets, linked by the header partial
 public/js/                    browser scripts, loaded as modules by the footer partial (theme.js)
 src/Routing.php               App\Routing: get()/post() routes, {param} placeholders, dispatch()
 src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
-src/Http/                     App\Http\Query (typed $_GET access), BadRequest (exception → 400)
+src/Http/                     App\Http\Query (typed $_GET access), HttpException + BadRequest/Forbidden/NotFound
+                              (400/403/404), Redirect (303 to a local path)
 docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Postgres init scripts)
 docker-compose.yaml           services
 docs/                         product overview, architecture, roadmap, grading criteria
@@ -93,8 +95,9 @@ phpunit.xml                   PHPUnit config: suite tests/Unit, strict failure f
 ## How a request works
 
 nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new XController()` → action → `AppController::render()`
-→ template in `public/views/` with the partials. No route matched → `DefaultController::notFound()` with status 404.
-A `BadRequest` thrown by the action is caught in `public/index.php` → `DefaultController::badRequest()` with status 400.
+→ template in `public/views/` with the partials. No route matched → `public/index.php` throws `NotFound`.
+One `try` in `public/index.php` catches `Redirect` (`Location` + 303) and any `HttpException` → `DefaultController::error()`,
+which sets the status and renders the `error` page. Throw before `render()`, otherwise part of the page is already sent.
 
 - **Routes:** `$routing->get('/demos/{id}', DemoController::class, 'show');` in `public/index.php`. `{name}` matches digits only,
   is cast to `int` and passed as a **named argument**, so the action parameter must have the same name (`show(int $id)`).
@@ -102,7 +105,8 @@ A `BadRequest` thrown by the action is caught in `public/index.php` → `Default
 - **Controllers** extend `AppController`, have no constructor arguments (the router does `new $class()`) and end with
   `$this->render('<template>', [...])`. Usual variables: `pageTitle` (required by the header), `activeNav`
   (`demos|hotspots|training|admin`), `user` (`['name' => ..., 'role' => 'USER'|'ADMIN']`, `null` hides the nav).
-- **Missing record:** `http_response_code(404); (new DefaultController())->notFound(); return;`.
+- **Missing record:** `throw new NotFound();`. A new status gets its own `HttpException` subclass and a title and lead
+  in `DefaultController::PAGES`. `Redirect` accepts only a local path (`/…`, not `//…` or `/\…`), against open redirects.
 - **Query parameters** are read through `new Query($_GET)` in the controller and accepted only from a whitelist,
   with a default (`HotspotController`). A non-string value (`?map[]=x`) throws `BadRequest` → 400; an unknown value
   falls back to the default. Read the query before `render()`, otherwise part of the page is sent before the error page.
@@ -115,7 +119,7 @@ A `BadRequest` thrown by the action is caught in `public/index.php` → `Default
 - PSR-12 formatting. Short methods (aim for 20 lines or fewer); names describe responsibility.
 - No `die()`, `exit`, `var_dump` or `print_r` in committed code.
 - Controllers: no SQL, no HTML strings, no business rules. Mock arrays are the accepted exception until the database exists.
-- No duplicated logic: a query, validation rule or HTML fragment has exactly one home (mock-stage exceptions: the 404 snippet, `USER` constants;
+- No duplicated logic: a query, validation rule or HTML fragment has exactly one home (mock-stage exceptions: `USER` constants;
   the `theme` key check in the header's anti-FOUC script and in `theme.js`, because the first must run before any file loads).
 - A new namespace needs a directory that matches it (`App\Repository\` → `src/Repository/`) or an explicit PSR-4 entry like
   `App\Controller\`, then `composer dump-autoload`. Linux (deployment) is case-sensitive.
@@ -135,8 +139,8 @@ A `BadRequest` thrown by the action is caught in `public/index.php` → `Default
 
 **HTTP**
 - Status codes: malformed input → 400; not logged in → 401 for `/api/*`, redirect to `/login` for pages; logged in but not allowed → 403;
-  missing record → 404. Today 400 and 404 exist: `/demos/abc` matches no route, `/demos/0` and unknown ids render the 404 error page,
-  a non-string query parameter renders the 400 one.
+  missing record → 404. Today 400, 403 and 404 exist as exceptions (401 comes with the route guards): `/demos/abc` matches no route,
+  `/demos/0` and unknown ids render the 404 error page, a non-string query parameter renders the 400 one.
 - After a successful POST, redirect (Post/Redirect/Get) instead of rendering.
 
 **Tests**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\NotFound;
 use App\Http\Query;
 
 final class DemoController extends AppController
@@ -77,8 +78,7 @@ final class DemoController extends AppController
             }
         }
 
-        http_response_code(404);
-        (new DefaultController())->notFound();
+        throw new NotFound();
     }
 
     /** @return array{map: string, outcome: string} */

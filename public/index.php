@@ -8,7 +8,9 @@ use App\Controller\DemoController;
 use App\Controller\HotspotController;
 use App\Controller\SecurityController;
 use App\Controller\TrainingController;
-use App\Http\BadRequest;
+use App\Http\HttpException;
+use App\Http\NotFound;
+use App\Http\Redirect;
 use App\Routing;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
@@ -28,14 +30,12 @@ try {
         $_SERVER['REQUEST_METHOD'],
         $_SERVER['REQUEST_URI'],
     );
-} catch (BadRequest) {
-    http_response_code(400);
-    (new DefaultController())->badRequest();
 
-    return;
-}
-
-if (!$routeFound) {
-    http_response_code(404);
-    (new DefaultController())->notFound();
+    if (!$routeFound) {
+        throw new NotFound();
+    }
+} catch (Redirect $redirect) {
+    header('Location: ' . $redirect->path(), true, 303);
+} catch (HttpException $error) {
+    (new DefaultController())->error($error);
 }

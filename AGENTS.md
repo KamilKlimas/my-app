@@ -19,14 +19,18 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - Pages render hard-coded mock data defined in the controllers. There is no login, session, CSRF or translation system yet.
 - `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
   but nothing queries it yet. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
-- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); nothing reads them yet.
+- The user layers exist but are not wired into any route yet (login does that): `App\Model\User` and `Role`,
+  `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive), and `App\Service\AuthService::authenticate()`.
+  The router accepts a factory closure for controllers that need collaborators.
+- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); only `PdoUserRepository` reads `users`, and no route calls it yet.
   `docker/db/900_seed_demo_data.sql` runs after every migration and inserts six maps and two demo accounts (`ON CONFLICT DO NOTHING`,
   so it can be re-run by hand). It holds only bcrypt hashes; the demo password is in the README.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
-  route order, invalid controller) through the fixture `tests/Unit/Fixture/SpyController.php`; `tests/Unit/Http/QueryTest.php`
+  route order, invalid controller, controller factories) through the fixtures `SpyController` and `InjectedController` in `tests/Unit/Fixture/`; `tests/Unit/Http/QueryTest.php`
   covers reading query parameters; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
-  `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN.
+  `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN;
+  `tests/Unit/Service/AuthServiceTest.php` covers login checks against the in-memory double `Fixture/InMemoryUserRepository.php`.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
@@ -88,6 +92,9 @@ src/controllers/              App\Controller\*: AppController (render() + $e) an
 src/Http/                     App\Http\Query (typed $_GET access), HttpException + BadRequest/Forbidden/NotFound/ServiceUnavailable
                               (400/403/404/503), Redirect (303 to a local path)
 src/Database/                 App\Database\DatabaseConfig (DB_* variables, DSN), ConnectionFactory (PDO), ConnectionFailed
+src/Model/                    App\Model\*: User (readonly), Role (enum USER|ADMIN); no SQL
+src/Repository/               App\Repository\*: UserRepository (interface), PdoUserRepository; the only place with SQL
+src/Service/                  App\Service\*: AuthService (checks e-mail and password); depends on repository interfaces
 docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Postgres init scripts)
 docker-compose.yaml           services
 docs/                         product overview, architecture, roadmap, grading criteria
@@ -216,3 +223,4 @@ A new playbook is added in the change that builds the area it covers.
 3. Changed UI checked at 360/768/1440 px and by keyboard.
 4. README updated if behaviour, routes or setup changed.
 5. Final message: changed files (`git diff --stat`), what was verified, and what the owner should check by hand.
+   Before each file's diff, say in one sentence why the change is made and, very briefly, what would break without it.

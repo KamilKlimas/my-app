@@ -152,8 +152,11 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
 │   ├── Http/               # Query (odczyt $_GET), wyjątki HTTP (400/403/404/503), Redirect (303)
 │   ├── Database/           # DatabaseConfig (zmienne DB_*), ConnectionFactory (PDO)
-│   └── Routing.php         # router GET/POST z parametrami {param}
-├── tests/Unit/             # testy PHPUnit (router, Query, wyjątki HTTP, Redirect, DatabaseConfig)
+│   ├── Model/              # User, Role: obiekty danych bez SQL
+│   ├── Repository/         # UserRepository (interfejs), PdoUserRepository: jedyne miejsce z SQL
+│   ├── Service/            # AuthService: sprawdzenie e-maila i hasła
+│   └── Routing.php         # router GET/POST z parametrami {param}, kontrolery z klasy albo fabryki
+├── tests/Unit/             # testy PHPUnit (router, Query, wyjątki HTTP, Redirect, DatabaseConfig, AuthService)
 ├── composer.json           # autoloading PSR-4, PHPUnit jako zależność dev
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
 ├── phpunit.xml             # konfiguracja testów

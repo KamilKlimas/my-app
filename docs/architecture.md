@@ -50,9 +50,18 @@ public/index.php → src/Routing.php → controller → service → repository i
 ```
 
 - Routing runs guards (logged in, role, CSRF) before the controller.
-- Services *(planned)* hold business logic: upload checks, diagnosis, scenario generation, `.cfg` export, e-mail.
-- Repositories *(planned)* are the only place with SQL, each behind an interface.
+- Services hold business logic: today `AuthService` (login check); planned: upload checks, diagnosis, scenario generation,
+  `.cfg` export, e-mail.
+- Repositories are the only place with SQL, each behind an interface (today `UserRepository` → `PdoUserRepository`).
+  Services depend on the interface, so unit tests swap in an in-memory double and need no database.
+  Rows are mapped to `readonly` models by hand, which keeps types explicit and works with `readonly` (unlike `FETCH_CLASS`).
 - Objects are wired by hand in `public/index.php`. No DI container, because it is easier to explain at the demo.
+  A controller with collaborators is registered with a factory closure (`fn () => new SecurityController($authService)`),
+  which the router calls only for the matched route, so unrelated controllers are never built. The alternative, `new` inside
+  the controller, hides the dependency and is a service locator in practice.
+- Equal login timing (M2): for an unknown e-mail `AuthService` still runs `password_verify()` against a fixed bcrypt hash
+  of the same cost. Otherwise the missing bcrypt work makes the answer measurably faster and reveals which e-mails have accounts.
+- Layers for users only (M2): the other controllers keep mock data until the milestones that build their data.
 - Malformed vs unknown query input (M1): a parameter that is not a string (`?map[]=x`, PHP turns it into an array)
   cannot be interpreted, so it is 400. A string outside the whitelist (`?map=foo`) falls back to the default, so an
   old or hand-edited link still opens the page. `BadRequest` is one of the `HttpException` subclasses.

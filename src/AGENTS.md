@@ -8,8 +8,10 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 - `Routing.php` (`App\Routing`) matches an HTTP method and a URL pattern to a controller method. The routes themselves
   are registered in `public/index.php`.
 - Controllers (`controllers/`, namespace `App\Controller`) read the request, validate input, call the logic and choose the view or response. They print no HTML and contain no SQL.
-
-<!-- TODO: when you add them, say where services and repositories live (e.g. `src/services/`, `src/repositories/`) and that SQL lives only in repositories. -->
+- Models (`Model/`, `App\Model`) are immutable data objects (`readonly`) with no SQL and no PDO. Fixed value sets are backed enums (`Role`).
+- Repositories (`Repository/`, `App\Repository`): an interface (`UserRepository`) and its PDO implementation (`PdoUserRepository`).
+  They are the only place with SQL and map each row to a model by hand (`mapRow()`), not with `FETCH_CLASS`.
+- Services (`Service/`, `App\Service`) hold business logic and depend on repository interfaces, never on `PDO`.
 
 ## Classes
 
@@ -17,9 +19,9 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 - A controller without collaborators is registered by class name (the router calls `new $class()`). One that needs
   collaborators takes them through its constructor and is registered with a factory closure in `public/index.php`.
   Other classes (services, repositories) also receive their collaborators through the constructor.
-- Controllers and data access talk through interfaces once repositories exist.
-
-<!-- TODO: say where objects are created and wired together (e.g. in `public/index.php`). -->
+- Controllers and data access talk through interfaces.
+- Objects are created and wired by hand in `public/index.php` (`PDO` → repository → service → controller factory).
+  No DI container, service locator or static access.
 
 ## Authentication and session
 

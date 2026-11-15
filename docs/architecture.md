@@ -1,6 +1,6 @@
 # DuelLab: architecture
 
-Status: target design, last updated 2026-11-13 (end of M1). Parts not in the repository yet are marked *(planned)*.
+Status: target design, last updated 2026-11-15 (end of M2). Parts not in the repository yet are marked *(planned)*.
 This file records decisions and their reasons. Coding rules are in the `AGENTS.md` files.
 
 ## Why it looks like this
@@ -144,13 +144,13 @@ public/index.php → src/Routing.php → controller → service → repository i
   instead of failing every request. Ownership of a record (`owner` below) is a check on the record, not the route,
   and comes with the `demos` table (M3). Protected pages are not cached: the session sends `Cache-Control: no-store` on every page,
   so "back" after logout does not show them.
-- Services hold business logic: today `AuthService` (login check, registration); planned: upload checks, diagnosis, scenario generation,
+- Services hold business logic: today `AuthService` (login check, registration) and `AccountService` (the stored language); planned: upload checks, diagnosis, scenario generation,
   `.cfg` export, e-mail.
 - Repositories are the only place with SQL, each behind an interface (today `UserRepository` → `PdoUserRepository`).
   Services depend on the interface, so unit tests swap in an in-memory double and need no database.
   Rows are mapped to `readonly` models by hand, which keeps types explicit and works with `readonly` (unlike `FETCH_CLASS`).
 - Objects are wired by hand in `public/index.php`. No DI container, because it is easier to explain at the demo.
-  A controller with collaborators is registered with a factory closure (`fn () => new SecurityController($authService, $session, $csrf)`),
+  A controller with collaborators is registered with a factory closure (`fn () => new DemoController($view, $currentUser)`),
   which the router calls only for the matched route, so unrelated controllers are never built. The alternative, `new` inside
   the controller, hides the dependency and is a service locator in practice.
   Routes are registered inside the `try` in `public/index.php`, after the services exist: an arrow function captures variables
@@ -193,28 +193,33 @@ Saving a training set: `POST /api/training-sets` with JSON `{name, duelIds}` →
 belongs to the user, is trainable and is on the same map (max 5) → the set and its items are inserted in one
 transaction → `201` with the new id.
 
-## Routes *(planned)*
+## Routes
 
-| Method | Path | Access | Purpose |
-|--------|------|--------|---------|
-| GET | `/` | all | redirect to `/demos` or `/login` *(exists)* |
-| GET, POST | `/login`, `/register` | guest | forms |
-| POST | `/logout` | all | ends the session; a guest just gets a fresh session |
-| GET, POST | `/password/forgot` | guest | send a reset link |
-| GET, POST | `/password/reset/{token:[a-f0-9]{64}}` | guest | set a new password |
-| GET | `/demos` | user | list and upload page |
-| POST | `/demos` | user | upload |
-| GET | `/demos/{id:\d+}` | owner | lost duels and radar |
-| GET | `/api/demos/{id:\d+}/status` | owner | JSON status for polling |
-| GET | `/hotspots?map=&days=&issue=&side=` | user | filtered hotspots |
-| POST | `/api/training-sets` | user | JSON, create a set |
-| GET | `/training-sets/{id:\d+}` | owner | the set |
-| GET | `/training-sets/{id:\d+}/cfg` | owner | download `.cfg` |
-| POST | `/training-sets/{id:\d+}/email` | owner | send `.cfg` by e-mail |
-| POST | `/locale` | all | switch PL/EN |
-| GET, POST | `/admin/maps`, `/admin/maps/{id:\d+}` | ADMIN | maps and radar upload |
-| GET | `/admin/queue` | ADMIN | processing status |
-| POST | `/admin/queue/{id:\d+}/retry` | ADMIN | retry a failed demo |
+"Mock" means the page exists and renders hard-coded data from its controller. Until `demos` exists, `owner` routes use the `user` level;
+the record check (`demos.user_id` = the current user) is added with the table in M3.
+
+| Method | Path | Access | Purpose | Status |
+|--------|------|--------|---------|--------|
+| GET | `/` | all | redirect to `/demos` or `/login` | exists |
+| GET, POST | `/login`, `/register` | guest | forms | exists |
+| POST | `/logout` | all | ends the session; a guest just gets a fresh session | exists |
+| GET, POST | `/password/forgot` | guest | send a reset link | planned (M6; the login page already links to `/forgot-password`, unify the address then) |
+| GET, POST | `/password/reset/{token:[a-f0-9]{64}}` | guest | set a new password | planned |
+| GET | `/demos` | user | list and upload page | exists (mock) |
+| POST | `/demos` | user | upload | planned |
+| GET | `/demos/{id:\d+}` | owner | lost duels and radar | exists (mock; level `user`) |
+| GET | `/api/demos/{id:\d+}/status` | owner | JSON status for polling | planned |
+| GET | `/hotspots?map=&days=&issue=&side=` | user | filtered hotspots | exists (mock; the four filters work on the mock data) |
+| GET | `/training` | user | the user's training sets | exists (mock) |
+| POST | `/api/training-sets` | user | JSON, create a set | planned |
+| GET | `/training-sets/{id:\d+}` | owner | the set | planned |
+| GET | `/training-sets/{id:\d+}/cfg` | owner | download `.cfg` | planned |
+| POST | `/training-sets/{id:\d+}/email` | owner | send `.cfg` by e-mail | planned |
+| POST | `/locale` | all | switch PL/EN | exists |
+| GET | `/admin` | ADMIN | admin start page | exists (mock) |
+| GET, POST | `/admin/maps`, `/admin/maps/{id:\d+}` | ADMIN | maps and radar upload | planned |
+| GET | `/admin/queue` | ADMIN | processing status | planned |
+| POST | `/admin/queue/{id:\d+}/retry` | ADMIN | retry a failed demo | planned |
 
 ## Data model *(planned)*
 

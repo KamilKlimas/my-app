@@ -8,9 +8,11 @@ po laboratorium, bez frameworków PHP i CSS.
 
 ## Stan projektu
 
-Po etapie M1 (fundamenty) strony renderują **dane przykładowe** zdefiniowane w kontrolerach. Baza ma już schemat
-(`users`, `maps`) i dane demo. Logowanie działa na danych z bazy (sesja z regenerowanym id, CSRF), a każda trasa
-ma poziom dostępu (akapit „Dostęp” pod tabelą tras). Nagłówek pokazuje zalogowane konto (nazwa i rola z bazy).
+Po etapie M2 (konta) działają rejestracja, logowanie i wylogowanie na danych z bazy, sesja (regenerowane id, ciasteczko
+`HttpOnly`, `SameSite=Lax`), role USER i ADMIN, CSRF na każdym POST i tłumaczenia PL/EN. Każda trasa ma poziom dostępu
+(akapit „Dostęp” pod tabelą tras), a nagłówek pokazuje zalogowane konto (nazwa i rola z bazy). Strony z demami, hotspotami,
+treningami i panelem admina nadal renderują **dane przykładowe** zdefiniowane w kontrolerach: ich tabele powstaną w kolejnych etapach.
+Baza ma schemat (`users`, `maps`) i dane demo.
 
 **Motyw jasny i ciemny:** przycisk w nagłówku przełącza `data-theme` na `<html>`, a wybór zapisuje się w `localStorage`
 (klucz `theme`). Bez zapisanego wyboru obowiązuje ustawienie systemu (`prefers-color-scheme`). Powrót do ustawienia
@@ -20,8 +22,8 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Ka�
 **Język (PL/EN):** teksty pochodzą z katalogów `lang/pl.php` i `lang/en.php`. Przyciski PL/EN w nagłówku zmieniają język
 (zalogowanemu zapisują go w koncie, więc wraca po ponownym logowaniu). Bez wyboru język wybiera przeglądarka (`Accept-Language`):
 polski → PL, każdy inny albo brak nagłówka → EN. Przetłumaczone są wszystkie strony, łącznie z liczbą mnogą, datami i ułamkami
-(rozszerzenie PHP `intl`, składnia ICU MessageFormat). Nazwy z gry (callouty, bronie, mapy) zostają po angielsku. Test: `curl -H 'Accept-Language: pl' http://localhost:8080/login`. Po pobraniu tej zmiany obraz PHP trzeba
-przebudować: `docker compose up --build -d php`.
+(rozszerzenie PHP `intl`, składnia ICU MessageFormat). Nazwy z gry (callouty, bronie, mapy) zostają po angielsku. Test: `curl -H 'Accept-Language: pl' http://localhost:8080/login`. Rozszerzenie `intl` wchodzi do obrazu PHP, więc po
+zmianie `docker/php/Dockerfile` trzeba przebudować obraz: `docker compose up --build -d php`.
 
 ## Funkcje
 
@@ -60,7 +62,7 @@ nie są ani wygraną, ani przegraną.
 | Backend         | PHP 8.3 (PHP-FPM), własny router i kontrolery         |
 | Frontend        | HTML, czysty CSS                                     |
 | Serwer HTTP     | nginx                                                |
-| Baza danych     | PostgreSQL 17 (PDO; aplikacja łączy się, ale jeszcze nie czyta danych) |
+| Baza danych     | PostgreSQL 17 (PDO, zapytania przygotowane; dziś tabele `users` i `maps`) |
 | Narzędzia       | Composer (autoloading PSR-4), PHPUnit 12, Mailpit, pgAdmin |
 | Konteneryzacja  | Docker, Docker Compose                               |
 
@@ -169,16 +171,16 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   ├── index.php           # front controller, rejestracja tras
 │   └── views/              # szablony stron + partials/ (header, footer, upload-form, csrf-field)
 ├── src/
-│   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
+│   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów (Security: logowanie, rejestracja, wylogowanie; Locale: przełącznik PL/EN)
 │   ├── I18n/               # Locale (wybór języka), Translator (klucz → tekst)
-│   ├── Http/               # Query (odczyt $_GET), Session (start sesji, odczyt/zapis), Csrf (token, sprawdzanie POST), wyjątki HTTP (400/403/404/503), Redirect (303)
+│   ├── Http/               # Query (odczyt $_GET i $_POST), Session, Csrf, CurrentUser (zalogowany z sesji), Access i AccessGuard (poziomy dostępu tras), wyjątki HTTP (400/403/404/503), Redirect (303)
 │   ├── Database/           # DatabaseConfig (zmienne DB_*), ConnectionFactory (PDO)
 │   ├── Model/              # User, Role: obiekty danych bez SQL
 │   ├── Repository/         # UserRepository (interfejs), PdoUserRepository: jedyne miejsce z SQL
-│   ├── Service/            # AuthService: sprawdzenie e-maila i hasła
+│   ├── Service/            # AuthService (logowanie, reguły rejestracji), AccountService (język konta)
 │   ├── View/               # View: renderuje szablon z $e, $t, $lang i tokenem CSRF
-│   └── Routing.php         # router GET/POST z parametrami {param}, kontrolery z klasy albo fabryki
-├── tests/Unit/             # testy PHPUnit (router, Query, Session, Csrf, wyjątki HTTP, Redirect, DatabaseConfig, AuthService, Locale, Translator)
+│   └── Routing.php         # router GET/POST z parametrami {param}, poziom dostępu każdej trasy, kontrolery z klasy albo fabryki
+├── tests/Unit/             # testy PHPUnit (router, Query, Session, Csrf, CurrentUser, AccessGuard, wyjątki HTTP, Redirect, DatabaseConfig, AuthService, AccountService, Locale, Translator)
 ├── composer.json           # autoloading PSR-4, PHPUnit jako zależność dev
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
 ├── phpunit.xml             # konfiguracja testów

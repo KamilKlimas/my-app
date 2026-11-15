@@ -1,7 +1,7 @@
 # AGENTS.md: src/
 
 Backend rules. They add to the root `AGENTS.md`; if the two ever disagree, the root file wins.
-Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (see the Roadmap in the root file).
+Login, sessions, CSRF, SQL and translations exist since M2; the upload rules apply once uploads exist (see the Roadmap in the root file).
 
 ## Responsibilities
 
@@ -12,7 +12,12 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 - Models (`Model/`, `App\Model`) are immutable data objects (`readonly`) with no SQL and no PDO. Fixed value sets are backed enums (`Role`).
 - Repositories (`Repository/`, `App\Repository`): an interface (`UserRepository`) and its PDO implementation (`PdoUserRepository`).
   They are the only place with SQL and map each row to a model by hand (`mapRow()`), not with `FETCH_CLASS`.
-- Services (`Service/`, `App\Service`) hold business logic and depend on repository interfaces, never on `PDO`.
+- Services (`Service/`, `App\Service`) hold business logic and depend on repository interfaces, never on `PDO`:
+  `AuthService` (login check, registration rules), `AccountService` (account settings such as the language).
+- `Http/` holds the request-side classes: `Session`, `Csrf`, `Query`, `CurrentUser` (the logged-in user), `Access` and `AccessGuard`
+  (who may open a route), and the `HttpException` family with `Redirect`.
+- `View/View.php` renders a template and gives it `$e`, `$t`, `$lang` and `$csrfToken`; `I18n/` holds `Locale` (which language) and
+  `Translator` (key → text). Controllers pass translation keys, never text.
 
 ## Classes
 

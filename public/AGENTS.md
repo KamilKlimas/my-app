@@ -4,7 +4,8 @@ Entry point and frontend rules. They add to the root `AGENTS.md`; if the two eve
 
 ## Entry point
 
-- `index.php` registers every route and hands the request to the router. No business logic here.
+- `index.php` starts the session, checks CSRF, opens the database, wires the objects by hand, registers every route (each with its `Access` level)
+  and hands the request to the router. No business logic here.
 
 ## Views
 

@@ -1,6 +1,6 @@
 # DuelLab: roadmap
 
-Status as of 2026-11-13 (week 2). Plan assumes about 8–10 hours a week. Week 1 starts on 2026-11-02.
+Status as of 2026-11-15 (end of week 2). Plan assumes about 8–10 hours a week. Week 1 starts on 2026-11-02.
 <!-- TODO: add the submission deadline and demo date once known. -->
 
 ## Done
@@ -9,8 +9,8 @@ Status as of 2026-11-13 (week 2). Plan assumes about 8–10 hours a week. Week 1
 - Repository from the course template (`public/index.php`, `src/Routing.php`, `src/controllers/`, Docker).
 - AI instruction files and project docs.
 - UI prototype (5 web + 5 mobile views), submitted.
-- Pages with mock data: start page with the upload form (`/`), "My demos" with `?map=` and `?outcome=` filters,
-  404 page with the shared layout.
+- Pages with mock data: "My demos" with `?map=` and `?outcome=` filters, Hotspots, Training, Admin, and the error page
+  with the shared layout. `/` only redirects (to `/demos` or `/login`).
 - Light and dark theme: colour tokens per theme, saved preference, per-theme backdrop photos (lab 5).
 - M1 foundations (weeks 1–2, closed 2026-11-13, on schedule):
   - Router: static route, `{id}` matching digits only, whitelisted query parameters; 404 for unknown paths and ids,
@@ -22,15 +22,29 @@ Status as of 2026-11-13 (week 2). Plan assumes about 8–10 hours a week. Week 1
 - Open from M1: compare the radar calibration of de_ancient, de_anubis and de_dust2 with the game files.
   Before the deploy (M3): a migration runner, and keeping the demo accounts out of production.
 
-## Current milestone: M2, accounts (week 3)
+- M2 accounts (closed 2026-11-15, planned for week 3, so about a week ahead):
+  - Registration, login and logout against the database: bcrypt through `password_hash()`/`password_verify()`, one generic
+    failure message, equal timing for unknown e-mails, a taken e-mail on registration ends like a success (no account enumeration).
+  - Session on every request: cookie `duellab_session` (`HttpOnly`, `SameSite=Lax`, `Secure` through `SESSION_SECURE`),
+    id regenerated after login, destroyed on logout; the session holds only the user id, the CSRF token and the language.
+  - Roles USER and ADMIN: every route declares an `Access` level, `AccessGuard` checks it before the controller
+    (guest → 303 `/login`, USER on `/admin` → 403).
+  - CSRF token checked centrally for every POST (403 on failure).
+  - PL/EN from catalogues in `lang/` with ICU plurals, dates and numbers; the switch is saved in the session and for a logged-in user in `users.locale`.
+  - Layers Controller → Service → Repository interface for users, wired by hand; PHPUnit: 157 tests.
+- Open from M2: "owner" of a demo is a check on the record (`demos.user_id`), not a route level; `/api/*` sends the CSRF token
+  in `X-CSRF-Token` and brings the 401 exception; an upload over `post_max_size` empties `$_POST` and would end as 403
+  (handle before the CSRF check); an e-mail to the owner of an address someone tried to register again, and a "show password" button (M6);
+  the `/forgot-password` link and the planned `/password/forgot` need one address; `docker/php/Dockerfile` still writes `mealplanner.ini`.
 
-Exit criteria: register, login, logout, session, roles, CSRF, PL/EN (the theme is already done).
+## Current milestone: M3, first deploy and upload (week 4)
+
+Exit criteria: the skeleton is deployed; demo upload, queue, worker with the parser, status polling.
 
 ## Next milestones
 
 | Milestone | Weeks | Exit criteria |
 |-----------|-------|---------------|
-| M3 first deploy and upload | 4 | the skeleton is deployed; demo upload, queue, worker with the parser, status polling |
 | M4 analysis | 5–6 | lost duels, diagnoses showing the measured value next to the threshold, Hotspots page with the database view, radar view; pattern check on 10 own demos |
 | M5 training | 7 | training sets, "Train this spot" from a hotspot, `.cfg` export with the export date stored, tests for the generator |
 | M6 admin and background | 8 | maps with radar upload, queue panel, CRON jobs, e-mail; before/after rate for each trained pattern |

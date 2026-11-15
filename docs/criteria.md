@@ -54,9 +54,9 @@ Check the project on a clean environment. The grader must be able to clone the r
 - [ ] **3. Application architecture.** The app has a clear separation of responsibilities, e.g. MVC or a separate frontend and backend. README contains a diagram or description of the layers and the direction of dependencies. A controller should not contain all of the SQL, HTML and business logic at once.
   - DuelLab: `architecture.md` → Layers.
 - [ ] **4. Routing.** The router recognises HTTP methods and URL patterns. The project has a static route, a regex pattern, a path parameter with passing and validation of the id, and a useful query parameter. Invalid or non-existent identifiers end with a controlled 400 or 404 response.
-  - DuelLab: `architecture.md` → Routes; status rules in `src/AGENTS.md` → Routes and errors.
+  - DuelLab: `architecture.md` → Routes; status rules in `src/AGENTS.md` → Routes and errors; `tests/Unit/RoutingTest.php`.
 - [ ] **5. Object-oriented backend.** The backend uses classes, objects, encapsulation, types and separation of responsibilities. Controllers, repositories or services cooperate through clearly defined interfaces. Procedural code is limited to the entry point and configuration.
-  - DuelLab: `src/AGENTS.md` → Classes.
+  - DuelLab: `src/AGENTS.md` → Responsibilities and Classes; `architecture.md` → Layers.
 - [ ] **6. ERD diagram in Mermaid.** An up-to-date ERD is placed directly in `README.md` as a Mermaid `erDiagram` block. It shows tables, primary keys, foreign keys, important attributes and relationship cardinalities, and matches the real schema.
   - DuelLab: built from `architecture.md` → Data model.
 - [ ] **7. Git.** The history shows systematic work: small logical commits, readable messages, and no single bulk commit with the whole project. The final, working version of all team members is merged into `main`.
@@ -86,15 +86,15 @@ Check the project on a clean environment. The grader must be able to clone the r
 - [ ] **19. WCAG compliance.** The interface can be used with a keyboard, focus is visible, images have alternatives, forms have labels, and contrast is sufficient. README contains a report from a tool, e.g. Lighthouse, axe or WAVE, with the date, the score, a screenshot and a description of the fixed problems.
   - DuelLab: `public/AGENTS.md` → Views; report in `roadmap.md` → M7.
 - [ ] **20. Login.** The user logs in with data from the database. The password is verified without comparing plain text, wrong credentials return a safe message, and after login there is a correct redirect and the user's identity is restored.
-  - DuelLab: `src/AGENTS.md` → Authentication and session.
+  - DuelLab: `src/AGENTS.md` → Authentication and session; `architecture.md` → Login; `AuthService`, `tests/Unit/Service/AuthServiceTest.php`.
 - [ ] **21. User session.** The logged-in state is kept when moving between pages. The session id is regenerated after login, the cookie has the right settings, and client data is not treated as a trusted source of permissions.
-  - DuelLab: `src/AGENTS.md` → Authentication and session.
+  - DuelLab: `src/AGENTS.md` → Authentication and session; `architecture.md` → Session; `App\Http\Session`, `tests/Unit/Http/SessionTest.php`.
 - [ ] **22. User permissions.** The backend checks permissions before every protected operation. Hiding a button in HTML is not protection. Manually calling a forbidden route ends with a 401 or 403 response.
-  - DuelLab: `src/AGENTS.md` → Data, files and permissions; Routes and errors.
+  - DuelLab: `src/AGENTS.md` → Data, files and permissions; Routes and errors; `architecture.md` → Layers (route access); `App\Http\AccessGuard`, `tests/Unit/Http/AccessGuardTest.php`.
 - [ ] **23. User roles.** The app has at least two meaningful roles, e.g. USER and ADMIN. The roles have different capabilities, are stored in the database or mapped by the backend, and can be presented on separate accounts.
-  - DuelLab: `product.md` → Roles.
+  - DuelLab: `product.md` → Roles; `App\Model\Role`; demo accounts of both roles in `README.md`.
 - [ ] **24. Logout.** Logout invalidates the session data and deletes or expires the relevant cookie. Using the Back button or repeating a request to a protected route does not restore access.
-  - DuelLab: `src/AGENTS.md` → Authentication and session.
+  - DuelLab: `src/AGENTS.md` → Authentication and session; `architecture.md` → Login (logout); `Session::destroy()`.
 - [ ] **25. Views, triggers, functions or transactions.** The database or repository uses at least one of: a view, a trigger, a PostgreSQL function or a transaction. The use must come from a real scenario, be in the export or a migration, and be shown during the demo.
   - DuelLab: `architecture.md` → Data model (view and transactions).
 - [ ] **26. Referential actions.** The app runs queries that join related tables with JOIN, and foreign keys have deliberate ON DELETE and possibly ON UPDATE behaviour. The student can justify the choice of CASCADE, RESTRICT, SET NULL or the default behaviour.
@@ -106,9 +106,9 @@ Check the project on a clean environment. The grader must be able to clone the r
 - [ ] **29. Clean, readable code.** Names describe responsibility, methods are short, formatting is consistent, and dead code and debugging are removed. The directory structure is predictable. Comments explain decisions instead of repeating the code.
   - DuelLab: `AGENTS.md` → Code style.
 - [ ] **30. Translations.** The interface supports at least Polish and English. Texts are not scattered across controllers and views but come from a translation catalogue or mechanism. Switching the language also covers validation and error messages.
-  - DuelLab: `public/AGENTS.md` (translation rules still TODO).
+  - DuelLab: `architecture.md` → Translations; `public/AGENTS.md` → Views; `lang/`, `tests/Unit/I18n/TranslatorTest.php`.
 - [ ] **31. Unit tests.** The repository contains runnable unit tests for important backend logic, including a valid and an invalid case. Tests are isolated, repeatable, pass, and have a documented command to run them.
-  - DuelLab: `AGENTS.md` → Testing.
+  - DuelLab: `AGENTS.md` → Conventions (Tests); command in `README.md` → Testy.
 - [ ] **32. CRON.** The project has a justified recurring job, e.g. cleaning expired data or sending reminders. The schedule, command and how to test it are described. The job writes a result or log and is safe to re-run.
   - DuelLab: `architecture.md` → Scheduled jobs.
 - [ ] **33. PHPMailer.** The app sends a useful e-mail through PHPMailer or an equivalent SMTP mechanism. Mail server settings come from the environment, errors are handled, and the local demo may use Mailpit.

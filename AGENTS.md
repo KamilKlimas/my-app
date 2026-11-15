@@ -14,10 +14,10 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - **The owner must explain every line at the demo.** Prefer small, readable changes; clever ones are acceptable with an explanation.
 - **Build only what the current task needs.** Don't scaffold Roadmap items ahead of time.
 
-## Current state (after M1: foundations; lab 5: light and dark theme)
+## Current state (after M2: accounts; lab 5: light and dark theme)
 
-- Pages render hard-coded mock data defined in the controllers. The header shows the logged-in
-  user from the database: every page controller gets `CurrentUser` through a factory and passes `'user' => $this->currentUser->user()`.
+- The demos, hotspots, training and admin pages render hard-coded mock data defined in the controllers; their tables come
+  with later milestones. The header shows the logged-in user from the database: every page controller gets `CurrentUser` through a factory and passes `'user' => $this->currentUser->user()`.
 - Login works against the database: `GET /login` (`SecurityController::login`) shows the form, `POST /login` (`authenticate`) checks it
   through `AuthService`. Success: `session_regenerate_id(true)`, `user_id` in the session, a new CSRF token, 303 to `/demos`.
   Failure: the form again with status 422, one generic message and the e-mail kept. An e-mail over 254 characters or a password
@@ -174,7 +174,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 - Type every parameter, return value and property. Classes are `final` by default (`AppController` is the abstract base).
 - PSR-12 formatting. Short methods (aim for 20 lines or fewer); names describe responsibility.
 - No `die()`, `exit`, `var_dump` or `print_r` in committed code.
-- Controllers: no SQL, no HTML strings, no business rules. Mock arrays are the accepted exception until the database exists.
+- Controllers: no SQL, no HTML strings, no business rules. Mock arrays are the accepted exception for a page until the tables behind it exist.
 - No duplicated logic: a query, validation rule or HTML fragment has exactly one home (mock-stage exception:
   the `theme` key check in the header's anti-FOUC script and in `theme.js`, because the first must run before any file loads).
 - A new namespace needs a directory that matches it (`App\Repository\` → `src/Repository/`) or an explicit PSR-4 entry like
@@ -195,7 +195,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 
 **HTTP**
 - Status codes: malformed input → 400; not logged in → 401 for `/api/*`, redirect to `/login` for pages; logged in but not allowed → 403;
-  missing record → 404. Today 400, 403 and 404 exist as exceptions (401 comes with the first `/api/*` route): `/demos/abc` matches no route,
+  missing record → 404; database down → 503. Today 400, 403, 404 and 503 exist as exceptions (401 comes with the first `/api/*` route): `/demos/abc` matches no route,
   `/demos/0` and unknown ids render the 404 error page, a non-string query parameter renders the 400 one.
 - After a successful POST, redirect (Post/Redirect/Get) instead of rendering.
 
@@ -224,9 +224,8 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 
 Don't scaffold these ahead of time. The change that builds an item moves its rules into the sections above.
 
-- Database: the remaining tables from `docs/architecture.md`; PDO with prepared statements; Mermaid ERD in the README and a full export in `database/duellab.sql`.
-- Login with USER and ADMIN roles, sessions, CSRF; HTTP exceptions for 400/401/403/404 rendered in one place.
-- Layers Controller → Service → Repository interface, wired by hand (no DI container, service locator or static facades).
+- Database: the remaining tables from `docs/architecture.md`; a migration runner before the deploy; Mermaid ERD in the README and a full export in `database/duellab.sql`.
+- The same layers (Controller → Service → Repository interface) for demos, hotspots and training sets, with "owner" checked on the record (`demos.user_id`), and `Unauthorized` (401) for `/api/*`.
 - JavaScript modules in `public/js/`, all network calls through one `api.js`; JSON API under `/api/`.
 - Uploads (demos, map radar images), the demo-parsing `worker`, `cron` jobs, e-mail through PHPMailer and Mailpit.
 

@@ -54,6 +54,33 @@ final class Session
         return $value;
     }
 
+    public function int(string $key): ?int
+    {
+        $value = $this->data[$key] ?? null;
+
+        if ($value !== null && !is_int($value)) {
+            throw new \UnexpectedValueException('Session value is not an int: ' . $key);
+        }
+
+        return $value;
+    }
+
+    public function regenerate(): void
+    {
+        if (!session_regenerate_id(true)) {
+            throw new \RuntimeException('Session id could not be regenerated');
+        }
+    }
+
+    public function destroy(): void
+    {
+        $this->data = [];
+        $cookie = session_get_cookie_params();
+        unset($cookie['lifetime']);
+        setcookie(session_name(), '', ['expires' => time() - 3600] + $cookie);
+        session_destroy();
+    }
+
     public function set(string $key, string|int $value): void
     {
         $this->data[$key] = $value;

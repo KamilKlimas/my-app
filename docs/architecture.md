@@ -71,6 +71,26 @@ Services talk over the `pg-network` network by service name, so the app reaches 
   so it ends as 403 instead of "file too large"; the upload step (M4) has to handle that.
 - `/api/*` (M3): the token goes in the `X-CSRF-Token` header instead of a form field.
 
+### Login
+
+- `GET /login` and `POST /login` are two actions (`login()`, `authenticate()`), not one action branching on the method as in lab 9:
+  the router already tells GET from POST, and each action keeps one responsibility.
+- Wrong credentials re-render the form with status 422, one generic message and the e-mail kept; no redirect. Post/Redirect/Get
+  protects a POST that changed something, and a failed login changed nothing. 422 makes the failure visible to curl;
+  401 would require a `WWW-Authenticate` header, which a form login has no use for.
+- Input limits: an e-mail over 254 characters or a password over 72 bytes fails with the same generic message, before any query.
+  bcrypt reads only the first 72 bytes, so a longer password with the right prefix would otherwise pass.
+- On success, in this order: `session_regenerate_id(true)` (an id known before login becomes useless: session fixation),
+  `user_id` into the session, a new CSRF token (the guest's token stops working), then 303 to `/demos`.
+- `password_needs_rehash()` is deferred: PHP 8.3 defaults to bcrypt cost 10, the cost of the seeded hashes, so the branch could
+  never run. Add it, with a repository method that stores the new hash, when moving to PHP 8.4 (default cost 12).
+- Logout is a POST with the CSRF token (a GET link could be triggered by any `<img>` on another site). `Session::destroy()` empties
+  the data, expires the cookie with the parameters it was set with (a cookie only matches when path and domain match) and calls
+  `session_destroy()`, which deletes the server-side file, so a copied old id no longer works. Then 303 to `/login`.
+  The `time() - 3600` passed to `setcookie()` never reaches the browser: for an empty value PHP sends
+  `deleted; expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0` itself. `Max-Age=0` does not depend on the client's clock
+  and wins over `Expires` (RFC 6265, 5.3). We keep the php.net idiom on purpose; any past date would do.
+
 ## Layers
 
 ```
@@ -86,9 +106,11 @@ public/index.php → src/Routing.php → controller → service → repository i
   Services depend on the interface, so unit tests swap in an in-memory double and need no database.
   Rows are mapped to `readonly` models by hand, which keeps types explicit and works with `readonly` (unlike `FETCH_CLASS`).
 - Objects are wired by hand in `public/index.php`. No DI container, because it is easier to explain at the demo.
-  A controller with collaborators is registered with a factory closure (`fn () => new SecurityController($authService)`),
+  A controller with collaborators is registered with a factory closure (`fn () => new SecurityController($authService, $session, $csrf)`),
   which the router calls only for the matched route, so unrelated controllers are never built. The alternative, `new` inside
   the controller, hides the dependency and is a service locator in practice.
+  Routes are registered inside the `try` in `public/index.php`, after the services exist: an arrow function captures variables
+  by value when it is created, so a factory defined earlier would capture undefined variables.
 - Equal login timing (M2): for an unknown e-mail `AuthService` still runs `password_verify()` against a fixed bcrypt hash
   of the same cost. Otherwise the missing bcrypt work makes the answer measurably faster and reveals which e-mails have accounts.
 - Layers for users only (M2): the other controllers keep mock data until the milestones that build their data.

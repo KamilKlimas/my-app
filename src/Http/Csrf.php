@@ -16,8 +16,13 @@ final class Csrf
     public function ensureToken(): void
     {
         if ($this->session->string(self::SESSION_KEY) === null) {
-            $this->session->set(self::SESSION_KEY, bin2hex(random_bytes(32)));
+            $this->rotate();
         }
+    }
+
+    public function rotate(): void
+    {
+        $this->session->set(self::SESSION_KEY, bin2hex(random_bytes(32)));
     }
 
     public function token(): string

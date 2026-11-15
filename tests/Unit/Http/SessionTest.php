@@ -34,6 +34,31 @@ final class SessionTest extends TestCase
         $session->string('user_id');
     }
 
+    public function testIntReturnsStoredValue(): void
+    {
+        $data = ['user_id' => 7];
+        $session = new Session($data);
+
+        $this->assertSame(7, $session->int('user_id'));
+    }
+
+    public function testIntReturnsNullWhenKeyIsMissing(): void
+    {
+        $data = [];
+        $session = new Session($data);
+
+        $this->assertNull($session->int('user_id'));
+    }
+
+    public function testIntRejectsNumericString(): void
+    {
+        $data = ['user_id' => '7'];
+        $session = new Session($data);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $session->int('user_id');
+    }
+
     public function testSetWritesIntoTheWrappedArray(): void
     {
         $data = [];

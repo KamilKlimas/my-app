@@ -43,4 +43,31 @@ final class AuthServiceTest extends TestCase
     {
         $this->assertNull($this->authService->authenticate('nobody@example.com', 'correct-password'));
     }
+
+    public function testEmailLongerThan254CharactersReturnsNull(): void
+    {
+        $email = str_repeat('a', 243) . '@example.com';
+
+        $this->assertNull($this->authService->authenticate($email, 'correct-password'));
+    }
+
+    public function testPasswordOfExactly72BytesReturnsUser(): void
+    {
+        $password = str_repeat('a', 72);
+        $user = new User(2, 'long@example.com', 'Long', password_hash($password, PASSWORD_BCRYPT, ['cost' => 4]), Role::User);
+        $repository = new InMemoryUserRepository();
+        $repository->add($user);
+
+        $this->assertSame($user, (new AuthService($repository))->authenticate('long@example.com', $password));
+    }
+
+    public function testPasswordLongerThan72BytesReturnsNullEvenWithMatchingPrefix(): void
+    {
+        $password = str_repeat('a', 72);
+        $user = new User(2, 'long@example.com', 'Long', password_hash($password, PASSWORD_BCRYPT, ['cost' => 4]), Role::User);
+        $repository = new InMemoryUserRepository();
+        $repository->add($user);
+
+        $this->assertNull((new AuthService($repository))->authenticate('long@example.com', $password . 'b'));
+    }
 }

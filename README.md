@@ -9,11 +9,12 @@ po laboratorium, bez frameworków PHP i CSS.
 ## Stan projektu
 
 Po etapie M1 (fundamenty) strony renderują **dane przykładowe** zdefiniowane w kontrolerach. Baza ma już schemat
-(`users`, `maps`) i dane demo, ale aplikacja jeszcze się z nią nie łączy. Nie ma logowania ani sesji.
+(`users`, `maps`) i dane demo. Logowanie działa na danych z bazy (sesja z regenerowanym id, CSRF), ale strony jeszcze
+nie czytają zalogowanego użytkownika: nagłówek pokazuje przykładowego gracza, a trasy nie są chronione.
 
 **Motyw jasny i ciemny:** przycisk w nagłówku przełącza `data-theme` na `<html>`, a wybór zapisuje się w `localStorage`
 (klucz `theme`). Bez zapisanego wyboru obowiązuje ustawienie systemu (`prefers-color-scheme`). Powrót do ustawienia
-systemowego: w konsoli `localStorage.removeItem('theme'); location.reload();`. Formularze (logowanie, upload demo, panel admina) wysyłają żądania
+systemowego: w konsoli `localStorage.removeItem('theme'); location.reload();`. Pozostałe formularze (upload demo, panel admina) wysyłają żądania
 do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Każdy POST bez poprawnego tokenu CSRF (ukryte pole `_csrf`) dostaje 403.
 
 ## Funkcje
@@ -22,6 +23,8 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Ka�
 |--------------------|--------------------------------|------------------------------------------------|
 | `/`                | `DemoController::upload`       | strona startowa: wgrywanie dema, jak działa DuelLab, wykrywane błędy |
 | `/login`           | `SecurityController::login`    | formularz logowania (po polsku)                |
+| `POST /login`      | `SecurityController::authenticate` | logowanie: sukces → 303 na `/demos`, złe dane → 422 z jednym ogólnym komunikatem |
+| `POST /logout`     | `SecurityController::logout`   | wylogowanie: niszczy sesję i ciasteczko, 303 na `/login` |
 | `/demos`           | `DemoController::index`        | moje dema: statystyki, szybki upload, tabela z filtrem `?map=` i `?outcome=` |
 | `/demos/{id}`      | `DemoController::show`         | szczegóły dema; nieznane id → 404              |
 | `/hotspots`        | `HotspotController::index`     | miejsca na mapie, w których gracz przegrywa    |
@@ -98,7 +101,7 @@ od pustej bazy: `docker compose down -v` (**kasuje wszystkie dane**), a potem `d
 
 Po migracjach wykonuje się seed `docker/db/900_seed_demo_data.sql`. Numer 900 sprawia, że idzie po każdej migracji.
 Seed wstawia mapy `de_ancient`, `de_anubis`, `de_dust2`, `de_inferno`, `de_mirage` i `de_nuke` z kalibracją radaru
-oraz dwa konta demo. Logowania jeszcze nie ma, więc konta przydadzą się dopiero od M2:
+oraz dwa konta demo, którymi można się zalogować na `/login`:
 
 | E-mail                 | Hasło      | Rola  |
 |------------------------|------------|-------|

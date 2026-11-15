@@ -42,6 +42,29 @@ final class CsrfTest extends TestCase
         $this->assertNotSame($firstData['csrf_token'], $secondData['csrf_token']);
     }
 
+    public function testRotateReplacesExistingToken(): void
+    {
+        $data = ['csrf_token' => 'existing'];
+        $csrf = new Csrf(new Session($data));
+
+        $csrf->rotate();
+
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $data['csrf_token']);
+    }
+
+    public function testOldTokenIsForbiddenAfterRotate(): void
+    {
+        $data = [];
+        $csrf = new Csrf(new Session($data));
+        $csrf->ensureToken();
+        $oldToken = $csrf->token();
+
+        $csrf->rotate();
+
+        $this->expectException(Forbidden::class);
+        $csrf->verifyRequest('POST', [Csrf::FIELD_NAME => $oldToken]);
+    }
+
     public function testTokenReturnsStoredToken(): void
     {
         $data = ['csrf_token' => 'stored'];

@@ -14,7 +14,7 @@
                 <p>
                     <label for="email">E-mail</label>
                     <input type="email" id="email" name="email" value="<?= $e($email) ?>"
-                           autocomplete="email" required>
+                           autocomplete="email" maxlength="254" required>
                 </p>
                 <p>
                     <label for="password">Hasło</label>
@@ -31,7 +31,7 @@
 
         <aside aria-labelledby="demo-accounts-heading">
             <h2 id="demo-accounts-heading">Konta demonstracyjne</h2>
-            <p><code>user@duellab.test</code> &middot; <code>admin@duellab.test</code></p>
+            <p><code>nightowl@example.com</code> &middot; <code>admin@example.com</code></p>
         </aside>
     </main>
 

@@ -22,7 +22,9 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Ka�
 | Trasa              | Kontroler i akcja              | Co pokazuje                                    |
 |--------------------|--------------------------------|------------------------------------------------|
 | `/`                | `DemoController::upload`       | strona startowa: wgrywanie dema, jak działa DuelLab, wykrywane błędy |
-| `/login`           | `SecurityController::login`    | formularz logowania (po polsku)                |
+| `/login`           | `SecurityController::login`    | formularz logowania (po polsku); `?registered=1` pokazuje komunikat po rejestracji |
+| `/register`        | `SecurityController::register` | formularz rejestracji (po polsku)              |
+| `POST /register`   | `SecurityController::createAccount` | nowe konto z rolą USER → 303 na `/login?registered=1`; błędne pola → 422 z komunikatem przy polu; zajęty e-mail kończy się tak samo jak sukces (nie zdradza, kto ma konto) |
 | `POST /login`      | `SecurityController::authenticate` | logowanie: sukces → 303 na `/demos`, złe dane → 422 z jednym ogólnym komunikatem |
 | `POST /logout`     | `SecurityController::logout`   | wylogowanie: niszczy sesję i ciasteczko, 303 na `/login` |
 | `/demos`           | `DemoController::index`        | moje dema: statystyki, szybki upload, tabela z filtrem `?map=` i `?outcome=` |

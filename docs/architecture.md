@@ -91,6 +91,23 @@ Services talk over the `pg-network` network by service name, so the app reaches 
   `deleted; expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0` itself. `Max-Age=0` does not depend on the client's clock
   and wins over `Expires` (RFC 6265, 5.3). We keep the php.net idiom on purpose; any past date would do.
 
+### Registration
+
+- `GET /register` and `POST /register` (`register()`, `createAccount()`). The rules live only in `AuthService::register()`:
+  e-mail `FILTER_VALIDATE_EMAIL` and at most 254 characters; name 3–32 letters, digits, space, `.`, `-`, `_` (32 = the column);
+  password at least 8 characters with no composition rules (NIST SP 800-63B, 5.1.1) and at most 72 bytes (bcrypt);
+  the confirmation field must match. HTML `required`/`minlength` only mirror them for convenience.
+- The service returns error codes per field (`email_invalid`, ...), not text, so translations (M2 step 09) replace only the
+  code → text map in `SecurityController`. Errors re-render the form with 422; e-mail and name are kept, passwords never.
+- The role is always `Role::User`, set in the service; the request's fields are never read for it.
+- No `SELECT` before the `INSERT`: two requests could both see the e-mail as free. The unique index on `LOWER(email)` is the only
+  guard; `PdoUserRepository::create()` turns SQLSTATE `23505` into `DuplicateEmail` (the only unique constraint on `users`
+  besides the generated id).
+- A taken e-mail is not revealed: the service swallows `DuplicateEmail` and the request ends exactly like a success,
+  303 to `/login?registered=1` with a neutral notice. Timing matches too, because `password_hash()` runs before the `INSERT` in both cases.
+  Cost: someone who forgot their account only finds out at login. M6 adds an e-mail to the owner of the address ("someone tried
+  to register"), the full fix recommended by OWASP.
+
 ## Layers
 
 ```
@@ -100,7 +117,7 @@ public/index.php → src/Routing.php → controller → service → repository i
 ```
 
 - Routing runs guards (logged in, role) before the controller; the CSRF check runs earlier, in `public/index.php`.
-- Services hold business logic: today `AuthService` (login check); planned: upload checks, diagnosis, scenario generation,
+- Services hold business logic: today `AuthService` (login check, registration); planned: upload checks, diagnosis, scenario generation,
   `.cfg` export, e-mail.
 - Repositories are the only place with SQL, each behind an interface (today `UserRepository` → `PdoUserRepository`).
   Services depend on the interface, so unit tests swap in an in-memory double and need no database.

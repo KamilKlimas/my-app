@@ -21,6 +21,11 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   through `AuthService`. Success: `session_regenerate_id(true)`, `user_id` in the session, a new CSRF token, 303 to `/demos`.
   Failure: the form again with status 422, one generic message and the e-mail kept. An e-mail over 254 characters or a password
   over 72 bytes (bcrypt's limit) fails without a query. No page reads `user_id` yet (guards come later).
+- Registration: `GET /register` (`SecurityController::register`) and `POST /register` (`createAccount`) through
+  `AuthService::register()`, which holds every rule (e-mail, name 3–32, password 8 characters to 72 bytes, matching confirmation)
+  and returns error codes per field; the controller maps them to Polish text. Errors: 422 with the form, e-mail and name kept.
+  Success and a taken e-mail both end with 303 to `/login?registered=1` (no account enumeration); the role is always USER.
+  `PdoUserRepository::create()` turns SQLSTATE `23505` into `App\Repository\DuplicateEmail`; there is no `SELECT` before the `INSERT`.
 - `POST /logout` (`SecurityController::logout`, the form in the header) runs `Session::destroy()`: empties the session data,
   expires the cookie with the same parameters, `session_destroy()`, then 303 to `/login`. The old session id is dead afterwards.
 - Every request starts a session (`App\Http\Session::start()` in `public/index.php`, before the database): cookie `duellab_session`,
@@ -31,10 +36,10 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   and every POST form includes `partials/csrf-field.html.php`.
 - `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
   and `SecurityController` uses it through `PdoUserRepository` → `AuthService`. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
-- User layers: `App\Model\User` and `Role`, `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive),
-  and `App\Service\AuthService::authenticate()`. Routes are registered inside the `try` in `public/index.php`, after the services exist,
+- User layers: `App\Model\User` and `Role`, `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive) and `create()`,
+  and `App\Service\AuthService::authenticate()` and `register()`. Routes are registered inside the `try` in `public/index.php`, after the services exist,
   because a controller factory (`fn () => new SecurityController(...)`) captures them when it is created.
-- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); only `PdoUserRepository` reads `users`, called by `POST /login`.
+- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); only `PdoUserRepository` reads and writes `users`, called by `POST /login` and `POST /register`.
   `docker/db/900_seed_demo_data.sql` runs after every migration and inserts six maps and two demo accounts (`ON CONFLICT DO NOTHING`,
   so it can be re-run by hand). It holds only bcrypt hashes; the demo password is in the README.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
@@ -42,7 +47,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   route order, invalid controller, controller factories) through the fixtures `SpyController` and `InjectedController` in `tests/Unit/Fixture/`; `tests/Unit/Http/QueryTest.php`
   covers reading query parameters; `SessionTest.php` covers session access on a plain array and parsing `SESSION_SECURE`; `CsrfTest.php` covers the token and the POST check; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
   `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN;
-  `tests/Unit/Service/AuthServiceTest.php` covers login checks against the in-memory double `Fixture/InMemoryUserRepository.php`.
+  `tests/Unit/Service/AuthServiceTest.php` covers login checks and registration rules against the in-memory double `Fixture/InMemoryUserRepository.php`.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
@@ -50,7 +55,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - `/` renders the start page (`DemoController::upload`: upload form, how it works, detected mistakes); `/demos` is "My demos"
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
   a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
-  rendered in one place; `Forbidden` (403) is thrown only by the CSRF check so far; `Redirect` is used by `POST /login` and `POST /logout`. `ServiceUnavailable` (503) covers a failed database connection.
+  rendered in one place; `Forbidden` (403) is thrown only by the CSRF check so far; `Redirect` is used by `POST /login`, `POST /register` and `POST /logout`. `ServiceUnavailable` (503) covers a failed database connection.
 - UI text is hard-coded: the login page is Polish, the other pages English.
 
 ## Stack and services

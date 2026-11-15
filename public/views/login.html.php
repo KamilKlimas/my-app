@@ -5,6 +5,10 @@
             <h1 id="login-heading">Zaloguj się</h1>
             <p>Sprawdź, gdzie przegrywasz pojedynki, i trenuj dokładnie te sytuacje.</p>
 
+            <?php if ($notice !== null): ?>
+                <p role="status"><?= $e($notice) ?></p>
+            <?php endif; ?>
+
             <?php if ($error !== null): ?>
                 <p role="alert"><?= $e($error) ?></p>
             <?php endif; ?>

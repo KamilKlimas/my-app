@@ -36,6 +36,8 @@ try {
     $routing = new Routing();
     $routing->get('/login', $securityController, 'login');
     $routing->post('/login', $securityController, 'authenticate');
+    $routing->get('/register', $securityController, 'register');
+    $routing->post('/register', $securityController, 'createAccount');
     $routing->post('/logout', $securityController, 'logout');
     $routing->get('/demos', DemoController::class, 'index');
     $routing->get('/demos/{id}', DemoController::class, 'show');

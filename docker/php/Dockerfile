@@ -5,12 +5,15 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 RUN apk add --no-cache \
+        icu-libs \
+        icu-data-full \
         zlib \
         libzip \
         libpng \
         libjpeg-turbo \
         postgresql-libs \
     && apk add --no-cache --virtual .build-deps \
+        icu-dev \
         zlib-dev \
         libzip-dev \
         libpng-dev \
@@ -19,6 +22,7 @@ RUN apk add --no-cache \
         $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
+        intl \
         opcache \
         zip \
         gd \

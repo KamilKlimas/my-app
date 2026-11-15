@@ -14,7 +14,7 @@ Po etapie M1 (fundamenty) strony renderują **dane przykładowe** zdefiniowane w
 **Motyw jasny i ciemny:** przycisk w nagłówku przełącza `data-theme` na `<html>`, a wybór zapisuje się w `localStorage`
 (klucz `theme`). Bez zapisanego wyboru obowiązuje ustawienie systemu (`prefers-color-scheme`). Powrót do ustawienia
 systemowego: w konsoli `localStorage.removeItem('theme'); location.reload();`. Formularze (logowanie, upload demo, panel admina) wysyłają żądania
-do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404.
+do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Każdy POST bez poprawnego tokenu CSRF (ukryte pole `_csrf`) dostaje 403.
 
 ## Funkcje
 
@@ -70,6 +70,9 @@ nie są ani wygraną, ani przegraną.
    | `MAILPIT_PORT`             | nie      | `8025`     |
    | `PGADMIN_PORT`             | nie      | `5050`     |
    | `PGADMIN_CONTAINER_NAME`   | nie      | `pg-admin` |
+   | `SESSION_SECURE`           | nie      | `0`        |
+
+   `SESSION_SECURE=1` dodaje do ciasteczka sesji flagę `Secure` (tylko HTTPS); w produkcji wymagane, lokalnie `0`.
 
 2. Uruchom kontenery:
 
@@ -79,7 +82,7 @@ nie są ani wygraną, ani przegraną.
 
    Przy pierwszym starcie kontener `php` sam wykona `composer install`, jeśli brakuje katalogu `vendor/`.
    Kontener `php` startuje dopiero, gdy baza przejdzie healthcheck (`pg_isready`). Dostaje z `.env` tylko dane bazy
-   (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` jako `DB_NAME`, `DB_USER`, `DB_PASSWORD`). Gdy baza nie działa,
+   (`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` jako `DB_NAME`, `DB_USER`, `DB_PASSWORD`) i `SESSION_SECURE`. Gdy baza nie działa,
    każda strona zwraca 503, a przyczyna trafia do `docker compose logs php`.
 
 | Usługa      | Adres                     |
@@ -147,16 +150,16 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   ├── css/                # variables → base → layout → components → demos → upload → states → responsive
 │   ├── js/                 # moduły przeglądarki (theme.js)
 │   ├── index.php           # front controller, rejestracja tras
-│   └── views/              # szablony stron + partials/ (header, footer, upload-form)
+│   └── views/              # szablony stron + partials/ (header, footer, upload-form, csrf-field)
 ├── src/
 │   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
-│   ├── Http/               # Query (odczyt $_GET), wyjątki HTTP (400/403/404/503), Redirect (303)
+│   ├── Http/               # Query (odczyt $_GET), Session (start sesji, odczyt/zapis), Csrf (token, sprawdzanie POST), wyjątki HTTP (400/403/404/503), Redirect (303)
 │   ├── Database/           # DatabaseConfig (zmienne DB_*), ConnectionFactory (PDO)
 │   ├── Model/              # User, Role: obiekty danych bez SQL
 │   ├── Repository/         # UserRepository (interfejs), PdoUserRepository: jedyne miejsce z SQL
 │   ├── Service/            # AuthService: sprawdzenie e-maila i hasła
 │   └── Routing.php         # router GET/POST z parametrami {param}, kontrolery z klasy albo fabryki
-├── tests/Unit/             # testy PHPUnit (router, Query, wyjątki HTTP, Redirect, DatabaseConfig, AuthService)
+├── tests/Unit/             # testy PHPUnit (router, Query, Session, Csrf, wyjątki HTTP, Redirect, DatabaseConfig, AuthService)
 ├── composer.json           # autoloading PSR-4, PHPUnit jako zależność dev
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
 ├── phpunit.xml             # konfiguracja testów

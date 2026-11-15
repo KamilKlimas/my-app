@@ -36,6 +36,7 @@ $won = $demo['score'][0] > $demo['score'][1];
                 </div>
             </dl>
             <form method="post" action="/demos/<?= (int) $demo['id'] ?>/training-set">
+                <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                 <button type="submit">Build training set (<?= (int) $selectedCount ?>)</button>
             </form>
         </header>
@@ -77,6 +78,7 @@ $won = $demo['score'][0] > $demo['score'][1];
             <p><?= count($duels) ?> of <?= (int) $demo['lostDuels'] ?> shown &middot; select one to see it on the radar</p>
 
             <form method="post" action="/demos/<?= (int) $demo['id'] ?>/training-set">
+                <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                 <ol>
                     <?php foreach ($duels as $duel): ?>
                         <li<?= $duel['round'] === $selectedDuel['round'] ? ' aria-current="true"' : '' ?>>

@@ -40,6 +40,7 @@
         <section aria-labelledby="add-map-heading">
             <h2 id="add-map-heading">Add map</h2>
             <form method="post" action="/admin/maps" enctype="multipart/form-data">
+                <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                 <p>
                     <label for="map-name">Map name</label>
                     <input type="text" id="map-name" name="name" value="<?= $e($form['name']) ?>"
@@ -88,6 +89,7 @@
                             <p><small><?= $e($job['detail']) ?></small></p>
                             <?php if ($job['status'] === 'failed'): ?>
                                 <form method="post" action="/admin/jobs/<?= (int) $job['id'] ?>/retry">
+                                    <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                                     <button type="submit">Retry</button>
                                 </form>
                             <?php endif; ?>

@@ -97,6 +97,7 @@ if ($user !== null && $user['role'] === 'ADMIN') {
                         <span class="user-chip__role"><?= $e($user['role']) ?></span>
                     </p>
                     <form method="post" action="/logout">
+                        <?php require __DIR__ . '/csrf-field.html.php'; ?>
                         <button type="submit" class="link-button">Log out</button>
                     </form>
                 <?php endif; ?>

@@ -27,10 +27,14 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 
 - Passwords only through `password_hash()` and `password_verify()`.
 - A failed login never reveals whether the e-mail exists.
-- Regenerate the session id after login. The session cookie is `HttpOnly` and `SameSite=Lax`, and `Secure` in production.
+- The session starts only in `App\Http\Session::start()`, called once from `public/index.php`; code reads and writes it
+  through `Session`, never `$_SESSION` directly. It holds only the user id and the CSRF token; name and role come from the database.
+- Regenerate the session id after login. The session cookie is `HttpOnly` and `SameSite=Lax`, and `Secure` when `SESSION_SECURE=1` (production).
 - The user id and role come only from the server-side session, never from request data.
 - Logout destroys the session and expires the cookie.
-- Every POST, PUT, PATCH and DELETE request checks a CSRF token.
+- Every POST, PUT, PATCH and DELETE request checks a CSRF token. Today `App\Http\Csrf::verifyRequest()` does it for every POST
+  in `public/index.php`, before dispatch; actions don't check it themselves. Compare tokens only with `hash_equals()`.
+- `AppController::render()` is the one other place that wraps `$_SESSION` (`new Session($_SESSION)`), to hand the token to templates.
 
 ## Data, files and permissions
 

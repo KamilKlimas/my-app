@@ -11,10 +11,12 @@ use App\Controller\TrainingController;
 use App\Database\ConnectionFactory;
 use App\Database\ConnectionFailed;
 use App\Database\DatabaseConfig;
+use App\Http\Csrf;
 use App\Http\HttpException;
 use App\Http\NotFound;
 use App\Http\Redirect;
 use App\Http\ServiceUnavailable;
+use App\Http\Session;
 use App\Routing;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
@@ -30,6 +32,10 @@ $routing->get('/admin', AdminController::class, 'index');
 $routing->get('/', DemoController::class, 'upload');
 
 try {
+    $session = Session::start(Session::secureFromEnvironment(getenv()));
+    $csrf = new Csrf($session);
+    $csrf->ensureToken();
+    $csrf->verifyRequest($_SERVER['REQUEST_METHOD'], $_POST);
     $database = (new ConnectionFactory())->create(DatabaseConfig::fromEnvironment(getenv()));
 
     $routeFound = $routing->dispatch(

@@ -10,6 +10,7 @@
             <?php endif; ?>
 
             <form method="post" action="/login">
+                <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                 <p>
                     <label for="email">E-mail</label>
                     <input type="email" id="email" name="email" value="<?= $e($email) ?>"

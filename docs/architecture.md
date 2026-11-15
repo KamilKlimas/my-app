@@ -41,6 +41,36 @@ Services talk over the `pg-network` network by service name, so the app reaches 
   never reaches the page. `public/index.php` maps it to 503 (`ServiceUnavailable`): the outage is temporary and on a dependency's side.
   The database layer itself does not know about HTTP.
 
+### Session
+
+- Started on every request by `App\Http\Session::start()` in `public/index.php`, before the database and before any output
+  (the cookie is a header). Starting it only on pages that need it would save little at this scale and adds a rule to remember.
+- Cookie `duellab_session`, lifetime 0 (ends with the browser), `HttpOnly`, `SameSite=Lax`; `use_strict_mode` rejects ids
+  the server never issued (session fixation). PHP also sends `Cache-Control: no-store`, so pages are not cached.
+- `Secure` comes from `SESSION_SECURE` (`0`/`1`, compose default `0`), not from detecting HTTPS: behind a proxy `$_SERVER['HTTPS']`
+  is unreliable. Any other value fails at startup, so a typo never silently drops `Secure` in production.
+- The session holds only the user id (from login on) and the CSRF token. Name and role are read from the database on every request,
+  so a role change takes effect immediately (lab 9 keeps more in the session; this is a deliberate difference).
+- `Session` wraps `$_SESSION` by reference, so unit tests pass a plain array and need no real session.
+
+### CSRF
+
+- Synchronizer token: one random token per session (`bin2hex(random_bytes(32))`), created by `Csrf::ensureToken()` at the start of every
+  request in `public/index.php` (before the check, so the 403 page can render) and stored in the session. `Csrf::token()` only reads
+  and throws if the token is missing (command–query separation), so `render()` never writes to the session.
+  Another site cannot read it (same-origin policy), so it cannot put it into a forged form. `SameSite=Lax` is the first layer, the token the second.
+  One token per session, not per form: per-form tokens break the back button and several open tabs. It rotates after login.
+- Checked once for every POST in `public/index.php`, right after the session starts and before the database and dispatch
+  (`Csrf::verifyRequest()`): "every POST" has no exceptions, and a check inside each action is easy to forget.
+  A missing, empty, non-string or wrong token → `Forbidden` (403 page). Compared with `hash_equals()` (constant time), never `===`.
+- Templates get the token as `$csrfToken` from `AppController::render()`, next to `$e`, and print it only through
+  `partials/csrf-field.html.php`. This is a deliberate hidden dependency on the session in the base controller: every POST form
+  on every page needs the token, including the error page (logout form in the header), and injecting it into every controller would
+  add a constructor and a factory per controller with no new behaviour. Frameworks do the same (Laravel `@csrf`, Twig `csrf_token()`).
+- Consequences: a POST to an unknown URL without a token is 403, not 404. An upload larger than `post_max_size` empties `$_POST`,
+  so it ends as 403 instead of "file too large"; the upload step (M4) has to handle that.
+- `/api/*` (M3): the token goes in the `X-CSRF-Token` header instead of a form field.
+
 ## Layers
 
 ```
@@ -49,7 +79,7 @@ public/index.php → src/Routing.php → controller → service → repository i
                                    public/views (presentation only)
 ```
 
-- Routing runs guards (logged in, role, CSRF) before the controller.
+- Routing runs guards (logged in, role) before the controller; the CSRF check runs earlier, in `public/index.php`.
 - Services hold business logic: today `AuthService` (login check); planned: upload checks, diagnosis, scenario generation,
   `.cfg` export, e-mail.
 - Repositories are the only place with SQL, each behind an interface (today `UserRepository` → `PdoUserRepository`).

@@ -12,8 +12,8 @@ Entry point and frontend rules. They add to the root `AGENTS.md`; if the two eve
 - Escape every dynamic value with `$e()`, which `AppController::render()` passes to each view. Never call `htmlspecialchars()` in a view.
 - Repeated parts (header, navigation, footer, the demo upload form) live in `views/partials/` and are included, never copied.
 - Semantic HTML. Every form field has a `<label>`, images have `alt`, everything works with a keyboard.
-- Every form that changes data includes the CSRF token field once the CSRF mechanism exists
-  (it comes with the first POST route; see Security in the root `AGENTS.md`).
+- Every POST form includes the CSRF field right after `<form>`: `<?php require __DIR__ . '/partials/csrf-field.html.php'; ?>`
+  (from a partial: `__DIR__ . '/csrf-field.html.php'`). Without it the POST ends with 403.
 
 ## Styles and layout
 

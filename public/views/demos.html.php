@@ -140,6 +140,7 @@
                                     <em class="table__action table__action--muted">Parsing ticks...</em>
                                 <?php else: ?>
                                     <form method="post" action="/demos/<?= (int) $demo['id'] ?>/delete">
+                                        <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                                         <button type="submit" class="table__action table__action--danger">Remove</button>
                                     </form>
                                 <?php endif; ?>

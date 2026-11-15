@@ -11,6 +11,7 @@
             <a href="/demos/<?= (int) $demoId ?>">Add more from the demo</a>
 
             <form method="post" action="/training">
+                <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
                 <ol>
                     <?php foreach ($scenarios as $index => $scenario): ?>
                         <li>

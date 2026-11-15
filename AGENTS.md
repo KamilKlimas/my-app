@@ -16,7 +16,13 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 
 ## Current state (after M1: foundations; lab 5: light and dark theme)
 
-- Pages render hard-coded mock data defined in the controllers. There is no login, session, CSRF or translation system yet.
+- Pages render hard-coded mock data defined in the controllers. There is no login or translation system yet.
+- Every request starts a session (`App\Http\Session::start()` in `public/index.php`, before the database): cookie `duellab_session`,
+  `HttpOnly`, `SameSite=Lax`, strict mode, `Secure` only with `SESSION_SECURE=1`. It holds only the CSRF token so far.
+- Every POST is checked for a CSRF token in `public/index.php`, right after the session starts and before the database
+  (`App\Http\Csrf::verifyRequest()`): a missing or wrong `_csrf` field renders the 403 `error` page, also for unknown URLs.
+  The token (one per session, `bin2hex(random_bytes(32))`) reaches every template as `$csrfToken` from `AppController::render()`,
+  and every POST form includes `partials/csrf-field.html.php`.
 - `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
   but nothing queries it yet. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
 - The user layers exist but are not wired into any route yet (login does that): `App\Model\User` and `Role`,
@@ -28,17 +34,17 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
   route order, invalid controller, controller factories) through the fixtures `SpyController` and `InjectedController` in `tests/Unit/Fixture/`; `tests/Unit/Http/QueryTest.php`
-  covers reading query parameters; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
+  covers reading query parameters; `SessionTest.php` covers session access on a plain array and parsing `SESSION_SECURE`; `CsrfTest.php` covers the token and the POST check; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
   `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN;
   `tests/Unit/Service/AuthServiceTest.php` covers login checks against the in-memory double `Fixture/InMemoryUserRepository.php`.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
-- Forms in the templates (`/login`, `/logout`, demo upload, `/admin/maps`, ...) post to routes that don't exist yet, so they get 404.
+- Forms in the templates (`/login`, `/logout`, demo upload, `/admin/maps`, ...) post to routes that don't exist yet, so with a valid token they get 404.
 - `/` renders the start page (`DemoController::upload`: upload form, how it works, detected mistakes); `/demos` is "My demos"
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
   a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
-  rendered in one place; `Forbidden` (403) and `Redirect` exist but no route uses them yet. `ServiceUnavailable` (503) covers a failed database connection.
+  rendered in one place; `Forbidden` (403) is thrown only by the CSRF check so far; `Redirect` exists but no route uses it yet. `ServiceUnavailable` (503) covers a failed database connection.
 - UI text is hard-coded: the login page is Polish, the other pages English.
 
 ## Stack and services
@@ -61,7 +67,7 @@ Any other dependency needs the owner's approval.
 - Database data lives in the named volume `pg-data`, so it survives `docker compose down` and `up`. Because the volume
   is no longer empty, a new init script in `docker/db/` does not run on its own; only `docker compose down -v` (wipes the data) resets it.
 - The `php` service gets only `DB_HOST`, `DB_PORT` (fixed: `db`, `5432`) and `DB_NAME`, `DB_USER`, `DB_PASSWORD` (from the `POSTGRES_*`
-  values in `.env`), as an explicit `environment:` list, not `env_file`. It starts only after the `db` healthcheck (`pg_isready`) passes.
+  values in `.env`) and `SESSION_SECURE` (default `0`), as an explicit `environment:` list, not `env_file`. It starts only after the `db` healthcheck (`pg_isready`) passes.
 
 ## Commands
 
@@ -84,12 +90,13 @@ Destructive, ask the owner first: `docker compose down -v`, and plain `docker co
 public/index.php              front controller: registers every route, then dispatches
 public/views/*.html.php       page templates, one per page
 public/views/partials/        header.html.php (doctype, <head>, top bar, nav), footer.html.php,
-                              upload-form.html.php (the one demo upload form; $dropzoneClass picks the look)
+                              upload-form.html.php (the one demo upload form; $dropzoneClass picks the look),
+                              csrf-field.html.php (the hidden CSRF field, included by every POST form)
 public/css/                   stylesheets, linked by the header partial
 public/js/                    browser scripts, loaded as modules by the footer partial (theme.js)
 src/Routing.php               App\Routing: get()/post() routes, {param} placeholders, dispatch()
 src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
-src/Http/                     App\Http\Query (typed $_GET access), HttpException + BadRequest/Forbidden/NotFound/ServiceUnavailable
+src/Http/                     App\Http\Query (typed $_GET access), Session (starts the session, typed $_SESSION access), Csrf (token, POST check), HttpException + BadRequest/Forbidden/NotFound/ServiceUnavailable
                               (400/403/404/503), Redirect (303 to a local path)
 src/Database/                 App\Database\DatabaseConfig (DB_* variables, DSN), ConnectionFactory (PDO), ConnectionFailed
 src/Model/                    App\Model\*: User (readonly), Role (enum USER|ADMIN); no SQL
@@ -165,8 +172,9 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
   (`htmlspecialchars`, PHP 8 defaults `ENT_QUOTES | ENT_SUBSTITUTE`, UTF-8). Integers may be printed with a `(int)` cast.
   In JS insert text with `textContent`, not `innerHTML`.
 - Input: cast and whitelist on the server. The client is never a source of user id or role.
-- Every route that changes data needs a CSRF token and a server-side authorization check. Neither exists yet:
-  the first POST route brings the CSRF mechanism (agree the design with the owner).
+- Every route that changes data needs a CSRF token and a server-side authorization check. The token check runs centrally
+  for every POST (`Csrf::verifyRequest()` in `public/index.php`, `hash_equals`, 403 on failure); authorization comes with the guards.
+  Every POST form includes `partials/csrf-field.html.php`. Future `/api/*` calls send the token in the `X-CSRF-Token` header.
 - Passwords only via `password_hash()` / `password_verify()`. SQL only as prepared statements with bound parameters;
   identifiers (sort column, direction) only from a whitelist.
 - Sessions: `session_regenerate_id(true)` after login; cookie `HttpOnly`, `SameSite=Lax`, `Secure` in production; logout destroys the session.

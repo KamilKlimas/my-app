@@ -3,6 +3,7 @@
 $dropzoneClass = $dropzoneClass ?? '';
 ?>
 <form class="dropzone <?= $e($dropzoneClass) ?>" method="post" action="/demos" enctype="multipart/form-data">
+    <?php require __DIR__ . '/csrf-field.html.php'; ?>
     <?php /* width/height/fill/stroke as attributes too: without the stylesheet (e.g. a stale cache) the icon stays small and outlined. */ ?>
     <svg class="dropzone__icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
          stroke-width="1.75" aria-hidden="true" focusable="false">

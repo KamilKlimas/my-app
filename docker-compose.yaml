@@ -43,6 +43,7 @@ services:
       DB_NAME: ${POSTGRES_DB}
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      SESSION_SECURE: ${SESSION_SECURE:-0}
     depends_on:
       db:
         condition: service_healthy

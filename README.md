@@ -17,9 +17,11 @@ ma poziom dostępu (akapit „Dostęp” pod tabelą tras). Nagłówek pokazuje 
 systemowego: w konsoli `localStorage.removeItem('theme'); location.reload();`. Pozostałe formularze (upload demo, panel admina) wysyłają żądania
 do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Każdy POST bez poprawnego tokenu CSRF (ukryte pole `_csrf`) dostaje 403.
 
-**Język (PL/EN):** teksty pochodzą z katalogów `lang/pl.php` i `lang/en.php`. Język wybiera przeglądarka (`Accept-Language`):
-polski → PL, każdy inny albo brak nagłówka → EN. Przetłumaczone są nagłówek, stopka, logowanie, rejestracja i strony błędów;
-treść pozostałych stron jest jeszcze po angielsku, a przyciski PL/EN jeszcze nie działają. Test: `curl -H 'Accept-Language: pl' http://localhost:8080/login`.
+**Język (PL/EN):** teksty pochodzą z katalogów `lang/pl.php` i `lang/en.php`. Przyciski PL/EN w nagłówku zmieniają język
+(zalogowanemu zapisują go w koncie, więc wraca po ponownym logowaniu). Bez wyboru język wybiera przeglądarka (`Accept-Language`):
+polski → PL, każdy inny albo brak nagłówka → EN. Przetłumaczone są wszystkie strony, łącznie z liczbą mnogą, datami i ułamkami
+(rozszerzenie PHP `intl`, składnia ICU MessageFormat). Nazwy z gry (callouty, bronie, mapy) zostają po angielsku. Test: `curl -H 'Accept-Language: pl' http://localhost:8080/login`. Po pobraniu tej zmiany obraz PHP trzeba
+przebudować: `docker compose up --build -d php`.
 
 ## Funkcje
 
@@ -31,6 +33,7 @@ treść pozostałych stron jest jeszcze po angielsku, a przyciski PL/EN jeszcze 
 | `POST /register`   | `SecurityController::createAccount` | nowe konto z rolą USER → 303 na `/login?registered=1`; błędne pola → 422 z komunikatem przy polu; zajęty e-mail kończy się tak samo jak sukces (nie zdradza, kto ma konto) |
 | `POST /login`      | `SecurityController::authenticate` | logowanie: sukces → 303 na `/demos`, złe dane → 422 z jednym ogólnym komunikatem |
 | `POST /logout`     | `SecurityController::logout`   | wylogowanie: niszczy sesję i ciasteczko, 303 na `/login` |
+| `POST /locale`     | `LocaleController::change`     | przełącznik PL/EN: język do sesji (zalogowanemu też do konta), 303 z powrotem na stronę; inny język niż `pl`/`en` → 400 |
 | `/demos`           | `DemoController::index`        | moje dema: statystyki, szybki upload, tabela z filtrem `?map=` i `?outcome=` |
 | `/demos/{id}`      | `DemoController::show`         | szczegóły dema; nieznane id → 404              |
 | `/hotspots`        | `HotspotController::index`     | miejsca na mapie, w których gracz przegrywa    |
@@ -40,7 +43,7 @@ treść pozostałych stron jest jeszcze po angielsku, a przyciski PL/EN jeszcze 
 
 Dostęp: `/login` i `/register` (GET i POST) tylko dla gościa (zalogowany → 303 na `/demos`); `/demos`, `/demos/{id}`, `/hotspots`,
 `/training` dla zalogowanego (gość → 303 na `/login`); `/admin` tylko dla ADMIN (USER → 403, gość → 303 na `/login`);
-`/` i `POST /logout` dla każdego. Sprawdza to `AccessGuard` przed kontrolerem, więc ukryty link to nie jedyna ochrona.
+`/`, `POST /logout` i `POST /locale` dla każdego. Sprawdza to `AccessGuard` przed kontrolerem, więc ukryty link to nie jedyna ochrona.
 
 `{id}` dopasowuje tylko cyfry, więc np. `/demos/abc` nie pasuje do żadnej trasy i zwraca 404.
 Parametr query podany jako tablica (np. `/demos?map[]=x`) kończy się stroną 400. Każdy błąd (400, 403, 404, 503) to wyjątek `HttpException`, który `public/index.php`

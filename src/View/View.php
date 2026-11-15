@@ -12,6 +12,7 @@ final class View
     public function __construct(
         private readonly Translator $translator,
         private readonly Csrf $csrf,
+        private readonly string $currentPath,
     ) {
     }
 
@@ -28,6 +29,7 @@ final class View
             't' => fn (string $key, array $parameters = []): string => $this->translator->translate($key, $parameters),
             'lang' => $this->translator->locale->value,
             'csrfToken' => $this->csrf->token(),
+            'currentPath' => $this->currentPath,
         ];
 
         extract($variables, EXTR_SKIP);

@@ -9,6 +9,7 @@ use App\Http\AccessGuard;
 use App\Http\CurrentUser;
 use App\Http\Redirect;
 use App\Http\Session;
+use App\I18n\Locale;
 use App\Model\Role;
 use App\Model\User;
 use App\Routing;
@@ -176,7 +177,7 @@ final class RoutingTest extends TestCase
 
     public function testLoggedInUserReachesUserRoute(): void
     {
-        $this->users->add(new User(5, 'player@example.com', 'Player', 'hash', Role::User));
+        $this->users->add(new User(5, 'player@example.com', 'Player', 'hash', Role::User, Locale::Pl));
         $this->sessionData[CurrentUser::SESSION_KEY] = 5;
         $this->routing->get('/demos', SpyController::class, 'index', Access::User);
 

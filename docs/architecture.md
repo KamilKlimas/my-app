@@ -49,7 +49,7 @@ Services talk over the `pg-network` network by service name, so the app reaches 
   the server never issued (session fixation). PHP also sends `Cache-Control: no-store`, so pages are not cached.
 - `Secure` comes from `SESSION_SECURE` (`0`/`1`, compose default `0`), not from detecting HTTPS: behind a proxy `$_SERVER['HTTPS']`
   is unreliable. Any other value fails at startup, so a typo never silently drops `Secure` in production.
-- The session holds only the user id (from login on) and the CSRF token. Name and role are read from the database on every request,
+- The session holds only the user id (from login on), the CSRF token and the chosen `locale`. Name and role are read from the database on every request,
   so a role change takes effect immediately (lab 9 keeps more in the session; this is a deliberate difference).
 - `Session` wraps `$_SESSION` by reference, so unit tests pass a plain array and need no real session.
 
@@ -107,6 +107,25 @@ Services talk over the `pg-network` network by service name, so the app reaches 
   303 to `/login?registered=1` with a neutral notice. Timing matches too, because `password_hash()` runs before the `INSERT` in both cases.
   Cost: someone who forgot their account only finds out at login. M6 adds an e-mail to the owner of the address ("someone tried
   to register"), the full fix recommended by OWASP.
+
+### Translations
+
+- Catalogues `lang/pl.php` and `lang/en.php`: flat arrays, dotted keys, identical key sets (a test). Templates call `$t('key', [...])`;
+  controllers pass keys and codes, so no user-facing sentence lives in PHP code.
+- Values are ICU MessageFormat patterns formatted by `MessageFormatter` (extension `intl`). Polish needs three plural forms for whole
+  numbers (Unicode CLDR: `one` = 1, `few` = 2–4 except 12–14, `many` = the rest; so 22 mecze, 12 meczów), dates with Polish month names
+  and a decimal comma. ICU ships these rules as data (CLDR), so we write no plural or date code of our own, and one source of language
+  rules covers plurals, dates and numbers.
+- The image installs `icu-data-full`: Alpine's default ICU package carries English data only, and with it Polish quietly falls back
+  to English month names and plural rules instead of failing.
+- Times use the 24-hour skeleton (`HHmm`) in both languages; `time, short` would print `9:52 PM` in English.
+- A missing key throws `MissingTranslation` and a broken pattern a `LogicException`, so mistakes are loud on the first render.
+- The request language: a valid `locale` in the session, else the highest-`q` tag of `Accept-Language` (`pl` → Polish, anything else → English).
+  The session gets `locale` from the PL/EN switch (`POST /locale`) and from login (copied from `users.locale`); the switch also saves it
+  to `users.locale` for a logged-in user, and registration stores the language of the form. Logout drops it, so the login page
+  follows the browser again until the next login. The switch returns to a hidden `return_to` path rather than `Referer`, which
+  browsers may strip; a non-local value falls back to `/` instead of failing.
+- Game names (callouts such as Top Mid, weapons, maps, the game mode) are data from the demo, not interface text, and stay untranslated.
 
 ## Layers
 

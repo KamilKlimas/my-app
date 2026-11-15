@@ -25,10 +25,10 @@ final class TrainingController extends AppController
             'demoId' => 1,
             'setName' => 'Mirage — Oct 6',
             'scenarios' => [
-                ['you' => 'Top Mid', 'enemy' => 'Window', 'tags' => ['Crosshair 14° off', 'AWP angle']],
-                ['you' => 'A Ramp', 'enemy' => 'A Site', 'tags' => ['Shooting while moving', 'Repeats 3× in 30 days']],
-                ['you' => 'B Approach', 'enemy' => 'B Site', 'tags' => ['Crosshair 21° off', 'Off-angle']],
-                ['you' => 'A Ramp', 'enemy' => 'A Site (R17)', 'tags' => ['Shooting while moving', 'Crosshair 9° off']],
+                ['you' => 'Top Mid', 'enemy' => 'Window', 'tags' => [['crosshair_off', ['degrees' => 14]], ['awp_angle', []]]],
+                ['you' => 'A Ramp', 'enemy' => 'A Site', 'tags' => [['moving', []], ['repeats', ['count' => 3, 'days' => 30]]]],
+                ['you' => 'B Approach', 'enemy' => 'B Site', 'tags' => [['crosshair_off', ['degrees' => 21]], ['off_angle', []]]],
+                ['you' => 'A Ramp', 'enemy' => 'A Site (R17)', 'tags' => [['moving', []], ['crosshair_off', ['degrees' => 9]]]],
             ],
             'cfgPreview' => <<<'CFG'
                 // de_mirage · 4 scenarios · press N for the next one

@@ -31,17 +31,24 @@ final class AdminController extends AppController
             'form' => $hasError
                 ? ['name' => 'de_ancient', 'posX' => '-2953', 'posY' => '2164', 'scale' => '0']
                 : ['name' => '', 'posX' => '', 'posY' => '', 'scale' => ''],
-            'errors' => $hasError ? ['scale' => 'Scale must be between 0.1 and 20.'] : [],
+            'errors' => $hasError ? ['scale' => 'scale_out_of_range'] : [],
             'jobs' => [
-                ['id' => 312, 'user' => 'nightowl', 'map' => 'de_ancient', 'status' => 'processing', 'statusLabel' => 'Processing 40%', 'progress' => 40, 'detail' => 'Started 21:52 · worker-1'],
-                ['id' => 309, 'user' => 'kuba_p', 'map' => 'de_nuke', 'status' => 'failed', 'statusLabel' => 'Failed', 'progress' => 0, 'detail' => 'Invalid file header — not a CS2 demo'],
-                ['id' => 305, 'user' => 'mati', 'map' => 'de_mirage', 'status' => 'done', 'statusLabel' => 'Done', 'progress' => 100, 'detail' => 'Parsed in 48 s · 11 lost duels'],
-                ['id' => 301, 'user' => 'nightowl', 'map' => 'de_inferno', 'status' => 'done', 'statusLabel' => 'Done', 'progress' => 100, 'detail' => 'Parsed in 52 s · 12 lost duels'],
+                ['id' => 312, 'user' => 'nightowl', 'map' => 'de_ancient', 'status' => 'processing', 'progress' => 40,
+                    'detail' => ['started', ['at' => new \DateTimeImmutable('2026-10-07 21:52'), 'worker' => 'worker-1']]],
+                ['id' => 309, 'user' => 'kuba_p', 'map' => 'de_nuke', 'status' => 'failed', 'progress' => 0,
+                    'detail' => ['invalid_header', []]],
+                ['id' => 305, 'user' => 'mati', 'map' => 'de_mirage', 'status' => 'done', 'progress' => 100,
+                    'detail' => ['parsed', ['seconds' => 48, 'duels' => 11]]],
+                ['id' => 301, 'user' => 'nightowl', 'map' => 'de_inferno', 'status' => 'done', 'progress' => 100,
+                    'detail' => ['parsed', ['seconds' => 52, 'duels' => 12]]],
             ],
             'scheduledJobs' => [
-                ['name' => 'cleanup:raw-demos', 'status' => 'OK', 'schedule' => 'Daily 03:00', 'lastRun' => 'last run Oct 7 · removed 12 raw .dem files'],
-                ['name' => 'queue:requeue-stuck', 'status' => 'OK', 'schedule' => 'Every 10 min', 'lastRun' => 'last run 15:50 · 0 jobs requeued'],
-                ['name' => 'mail:weekly-summary', 'status' => 'OK', 'schedule' => 'Mondays 08:00', 'lastRun' => 'last run Oct 5 · 23 e-mails sent'],
+                ['name' => 'cleanup:raw-demos', 'status' => 'ok', 'schedule' => ['daily', ['time' => '03:00']],
+                    'lastRun' => ['cleanup', ['at' => new \DateTimeImmutable('2026-10-07 03:00'), 'count' => 12]]],
+                ['name' => 'queue:requeue-stuck', 'status' => 'ok', 'schedule' => ['every_minutes', ['minutes' => 10]],
+                    'lastRun' => ['requeue', ['at' => new \DateTimeImmutable('2026-10-07 15:50'), 'count' => 0]]],
+                ['name' => 'mail:weekly-summary', 'status' => 'ok', 'schedule' => ['mondays', ['time' => '08:00']],
+                    'lastRun' => ['weekly_summary', ['at' => new \DateTimeImmutable('2026-10-05 08:00'), 'count' => 23]]],
             ],
         ]);
     }

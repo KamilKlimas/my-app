@@ -37,17 +37,17 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   The guard reads the user through `App\Http\CurrentUser`: the id from the session, then `UserRepository::findById()`, once per request.
   An id whose account no longer exists is removed from the session and the request continues as a guest.
 - Every request starts a session (`App\Http\Session::start()` in `public/index.php`, before the database): cookie `duellab_session`,
-  `HttpOnly`, `SameSite=Lax`, strict mode, `Secure` only with `SESSION_SECURE=1`. It holds the CSRF token and, after login, the user id (`int`).
+  `HttpOnly`, `SameSite=Lax`, strict mode, `Secure` only with `SESSION_SECURE=1`. It holds the CSRF token, after login the user id (`int`), and the chosen `locale`.
 - Every POST is checked for a CSRF token in `public/index.php`, right after the session starts and before the database
   (`App\Http\Csrf::verifyRequest()`): a missing or wrong `_csrf` field renders the 403 `error` page, also for unknown URLs.
   The token (one per session, `bin2hex(random_bytes(32))`) reaches every template as `$csrfToken` from `View::render()`,
   and every POST form includes `partials/csrf-field.html.php`.
 - `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
   and `SecurityController` uses it through `PdoUserRepository` → `AuthService`. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
-- User layers: `App\Model\User` and `Role`, `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive), `findById()` and `create()`,
-  and `App\Service\AuthService::authenticate()` and `register()`. Routes are registered inside the `try` in `public/index.php`, after the services exist,
+- User layers: `App\Model\User` and `Role`, `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive), `findById()`, `create()` and `updateLocale()`,
+  `App\Service\AuthService::authenticate()` and `register()`, and `AccountService::changeLocale()`. Routes are registered inside the `try` in `public/index.php`, after the services exist,
   because a controller factory (`fn () => new SecurityController(...)`) captures them when it is created.
-- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); only `PdoUserRepository` reads and writes `users`, called by `POST /login` and `POST /register`.
+- The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); only `PdoUserRepository` reads and writes `users`, called by `POST /login`, `POST /register` and `POST /locale`.
   `docker/db/900_seed_demo_data.sql` runs after every migration and inserts six maps and two demo accounts (`ON CONFLICT DO NOTHING`,
   so it can be re-run by hand). It holds only bcrypt hashes; the demo password is in the README.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
@@ -55,7 +55,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   route order, invalid controller, controller factories, the access check before the controller) through the fixtures `SpyController` and `InjectedController` in `tests/Unit/Fixture/`; `tests/Unit/Http/QueryTest.php`
   covers reading query parameters; `SessionTest.php` covers session access on a plain array and parsing `SESSION_SECURE`; `AccessGuardTest.php` covers every access level for a guest, a USER and an ADMIN; `CurrentUserTest.php` covers reading the user from the session id; `CsrfTest.php` covers the token and the POST check; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
   `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN;
-  `tests/Unit/Service/AuthServiceTest.php` covers login checks and registration rules against the in-memory double `Fixture/InMemoryUserRepository.php`.
+  `tests/Unit/Service/AuthServiceTest.php` covers login checks and registration rules, `AccountServiceTest.php` the stored language, against the in-memory double `Fixture/InMemoryUserRepository.php`.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
@@ -63,18 +63,24 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 - `/` only redirects (see route access); `/demos` is "My demos"
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
   a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
-  rendered in one place; `Forbidden` (403) is thrown by the CSRF check and by `AccessGuard`; `Redirect` is used by `AccessGuard`, `/`, `POST /login`, `POST /register` and `POST /logout`. `ServiceUnavailable` (503) covers a failed database connection.
-- Translations: `lang/pl.php` and `lang/en.php` are flat arrays of dotted keys (`login.title`); `App\I18n\Translator` loads one
-  and `View::render()` passes it to every template as the closure `$t('key', ['name' => value])` (`{name}` placeholders), next to `$e`
-  and `$lang`. Controllers pass keys, never text (`'pageTitle' => 'demos.title'`). A missing key throws `MissingTranslation`;
-  `TranslatorTest` checks that both files have the same keys. The language (`App\I18n\Locale::resolve()`): a valid `locale` in the
-  session wins, else `Accept-Language` (Polish preferred → `pl`, anything else or no header → `en`). Nothing writes `locale` to
-  the session yet, and the PL/EN buttons aren't wired. Translated so far: header, footer, login, registration, error pages and page titles;
-  the bodies of demos, demo, hotspots, training and admin are still English.
+  rendered in one place; `Forbidden` (403) is thrown by the CSRF check and by `AccessGuard`; `Redirect` is used by `AccessGuard`, `/`, `POST /login`, `POST /register`, `POST /logout` and `POST /locale`. `ServiceUnavailable` (503) covers a failed database connection.
+- Translations: `lang/pl.php` and `lang/en.php` are flat arrays of dotted keys (`login.title`) whose values are ICU MessageFormat
+  patterns; `App\I18n\Translator` formats them with `MessageFormatter` (extension `intl`) and `View::render()` passes it to every
+  template as the closure `$t('key', ['name' => value])`, next to `$e` and `$lang`. Syntax used: `{name}`,
+  `{count, plural, one {…} few {…} many {…} other {…}}` (Polish has three integer forms, English `one`/`other`),
+  `{at, date, ::MMMdHHmm}` (a `DateTimeInterface`), `{value, number}` (decimal comma in Polish). Controllers pass keys, codes and
+  parameters, never text (`'pageTitle' => 'demos.title'`, tags as `['crosshair_off', ['degrees' => 14]]`). A missing key throws
+  `MissingTranslation`, an invalid pattern a `LogicException`; `TranslatorTest` checks equal key sets and that every pattern compiles.
+  The language (`App\I18n\Locale::resolve()`): a valid `locale` in the session wins, else `Accept-Language` (Polish preferred → `pl`,
+  anything else or no header → `en`). The PL/EN buttons in the header are a form posting to `POST /locale` (`LocaleController::change`, `Anyone`):
+  `locale` must be `pl` or `en` (else 400), it goes to the session and, for a logged-in user, to `users.locale` through `AccountService::changeLocale()`;
+  then 303 back to the hidden `return_to` (the page's `$currentPath` from `View`), or `/` when it is not a local path.
+  Login copies `users.locale` into the session; registration stores the language the form was filled in. Logout clears it with the session.
+  Every page is translated; map callouts, weapons, map names, the game mode and the `.cfg` preview stay as data.
 
 ## Stack and services
 
-PHP 8.3 (FPM on Alpine) behind nginx, PostgreSQL 17, plain CSS, Docker Compose for everything; no frontend or CSS libraries.
+PHP 8.3 (FPM on Alpine, with `intl` and full ICU data) behind nginx, PostgreSQL 17, plain CSS, Docker Compose for everything; no frontend or CSS libraries.
 Composer handles PSR-4 autoloading (`App\Tests\` → `tests/` only in `autoload-dev`) and the dev dependency PHPUnit. Allowed packages when needed: `phpunit/phpunit` (dev), `phpmailer/phpmailer`.
 Any other dependency needs the owner's approval.
 
@@ -130,7 +136,7 @@ src/Http/                     App\Http\Query (typed $_GET access), Session (star
 src/Database/                 App\Database\DatabaseConfig (DB_* variables, DSN), ConnectionFactory (PDO), ConnectionFailed
 src/Model/                    App\Model\*: User (readonly), Role (enum USER|ADMIN); no SQL
 src/Repository/               App\Repository\*: UserRepository (interface), PdoUserRepository; the only place with SQL
-src/Service/                  App\Service\*: AuthService (checks e-mail and password); depends on repository interfaces
+src/Service/                  App\Service\*: AuthService (checks e-mail and password), AccountService (account settings); depend on repository interfaces
 docker/                       Dockerfiles, nginx.conf, php entrypoint, db/ (Postgres init scripts)
 docker-compose.yaml           services
 docs/                         product overview, architecture, roadmap, grading criteria
@@ -184,7 +190,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
   → `states` (hover, `:focus-visible`, state classes) → `responsive` (breakpoint `max-width: 48rem`).
   Page-specific styles get their own `<page>.css`, linked before `states.css`.
 - Colours only through tokens: `:root` holds the dark (default) values, `html[data-theme="light"]` overrides colour and backdrop tokens only (`--backdrop-image`, `--backdrop-veil`: the page photo in `public/images/` and how strongly it fades into the background).
-  A new colour token gets a value in both blocks. The PL/EN switch in the header isn't wired yet.
+  A new colour token gets a value in both blocks.
 - Every view works at 360 px, 768 px and 1440 px without horizontal scrolling.
 
 **HTTP**
@@ -221,7 +227,6 @@ Don't scaffold these ahead of time. The change that builds an item moves its rul
 - Database: the remaining tables from `docs/architecture.md`; PDO with prepared statements; Mermaid ERD in the README and a full export in `database/duellab.sql`.
 - Login with USER and ADMIN roles, sessions, CSRF; HTTP exceptions for 400/401/403/404 rendered in one place.
 - Layers Controller → Service → Repository interface, wired by hand (no DI container, service locator or static facades).
-- Translations, rest of step 09: page bodies, the PL/EN switch (`POST /locale`) and `users.locale`.
 - JavaScript modules in `public/js/`, all network calls through one `api.js`; JSON API under `/api/`.
 - Uploads (demos, map radar images), the demo-parsing `worker`, `cron` jobs, e-mail through PHPMailer and Mailpit.
 

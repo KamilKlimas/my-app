@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Fixture;
 
+use App\I18n\Locale;
 use App\Model\Role;
 use App\Model\User;
 use App\Repository\DuplicateEmail;
@@ -39,13 +40,22 @@ final class InMemoryUserRepository implements UserRepository
         return null;
     }
 
-    public function create(string $email, string $name, string $passwordHash, Role $role): void
+    public function create(string $email, string $name, string $passwordHash, Role $role, Locale $locale): void
     {
         if (isset($this->usersByEmail[strtolower($email)])) {
             throw new DuplicateEmail('E-mail already registered');
         }
 
-        $this->add(new User(count($this->usersByEmail) + 1, $email, $name, $passwordHash, $role));
+        $this->add(new User(count($this->usersByEmail) + 1, $email, $name, $passwordHash, $role, $locale));
+    }
+
+    public function updateLocale(int $id, Locale $locale): void
+    {
+        foreach ($this->usersByEmail as $key => $user) {
+            if ($user->id === $id) {
+                $this->usersByEmail[$key] = new User($user->id, $user->email, $user->name, $user->passwordHash, $user->role, $locale);
+            }
+        }
     }
 
     public function count(): int

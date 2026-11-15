@@ -10,6 +10,7 @@ use App\Http\CurrentUser;
 use App\Http\Forbidden;
 use App\Http\Redirect;
 use App\Http\Session;
+use App\I18n\Locale;
 use App\Model\Role;
 use App\Model\User;
 use App\Tests\Unit\Fixture\InMemoryUserRepository;
@@ -76,7 +77,7 @@ final class AccessGuardTest extends TestCase
         $repository = new InMemoryUserRepository();
 
         if ($role !== null) {
-            $repository->add(new User(5, 'player@example.com', 'Player', 'hash', $role));
+            $repository->add(new User(5, 'player@example.com', 'Player', 'hash', $role, Locale::Pl));
             $this->sessionData = [CurrentUser::SESSION_KEY => 5];
         }
 

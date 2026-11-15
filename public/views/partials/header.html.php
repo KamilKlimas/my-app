@@ -82,10 +82,12 @@ if ($user !== null && $user->role === \App\Model\Role::Admin) {
             <?php endif; ?>
 
             <div class="site-header__tools">
-                <div class="lang-switch" role="group" aria-label="<?= $e($t('layout.language')) ?>">
-                    <button type="button" class="lang-switch__button" aria-pressed="<?= $lang === 'pl' ? 'true' : 'false' ?>">PL</button>
-                    <button type="button" class="lang-switch__button" aria-pressed="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</button>
-                </div>
+                <form class="lang-switch" method="post" action="/locale" role="group" aria-label="<?= $e($t('layout.language')) ?>">
+                    <?php require __DIR__ . '/csrf-field.html.php'; ?>
+                    <input type="hidden" name="return_to" value="<?= $e($currentPath) ?>">
+                    <button type="submit" name="locale" value="pl" lang="pl" class="lang-switch__button" aria-pressed="<?= $lang === 'pl' ? 'true' : 'false' ?>">PL</button>
+                    <button type="submit" name="locale" value="en" lang="en" class="lang-switch__button" aria-pressed="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</button>
+                </form>
                 <button type="button" class="icon-button theme-toggle" aria-pressed="false"
                         aria-label="<?= $e($t('layout.theme.to_dark')) ?>" title="<?= $e($t('layout.theme.title')) ?>"
                         data-label-dark="<?= $e($t('layout.theme.dark')) ?>" data-label-light="<?= $e($t('layout.theme.light')) ?>"

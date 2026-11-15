@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Http;
 
 use App\Http\CurrentUser;
 use App\Http\Session;
+use App\I18n\Locale;
 use App\Model\Role;
 use App\Model\User;
 use App\Tests\Unit\Fixture\InMemoryUserRepository;
@@ -18,7 +19,7 @@ final class CurrentUserTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->user = new User(5, 'player@example.com', 'Player', 'hash', Role::User);
+        $this->user = new User(5, 'player@example.com', 'Player', 'hash', Role::User, Locale::Pl);
         $this->repository = new InMemoryUserRepository();
         $this->repository->add($this->user);
     }

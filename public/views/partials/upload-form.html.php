@@ -10,8 +10,8 @@ $dropzoneClass = $dropzoneClass ?? '';
         <path d="M7 18a4.5 4.5 0 0 1-.6-8.96A6 6 0 0 1 18 8.5a4 4 0 0 1-.5 8.5" />
         <path d="M12 21v-9m-3.5 3.5L12 12l3.5 3.5" />
     </svg>
-    <label class="dropzone__label" for="demo-file">Drop your <code>.dem</code> file here or browse</label>
+    <label class="dropzone__label" for="demo-file"><?= $e($t('upload.label')) ?></label>
     <input class="dropzone__input" type="file" id="demo-file" name="demo" accept=".dem" required>
-    <p class="dropzone__hint">CS2 demos only &middot; max 300 MB &middot; checked on the server before processing</p>
-    <button class="button" type="submit">Upload</button>
+    <p class="dropzone__hint"><?= $e($t('upload.hint')) ?></p>
+    <button class="button" type="submit"><?= $e($t('upload.submit')) ?></button>
 </form>

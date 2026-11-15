@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\I18n\Locale;
 use App\Model\Role;
 use App\Model\User;
 
@@ -18,7 +19,7 @@ final class PdoUserRepository implements UserRepository
     public function findByEmail(string $email): ?User
     {
         $statement = $this->database->prepare(
-            'SELECT id, email, name, password_hash, role FROM users WHERE LOWER(email) = LOWER(:email)',
+            'SELECT id, email, name, password_hash, role, locale FROM users WHERE LOWER(email) = LOWER(:email)',
         );
         $statement->execute(['email' => $email]);
         $row = $statement->fetch();
@@ -29,7 +30,7 @@ final class PdoUserRepository implements UserRepository
     public function findById(int $id): ?User
     {
         $statement = $this->database->prepare(
-            'SELECT id, email, name, password_hash, role FROM users WHERE id = :id',
+            'SELECT id, email, name, password_hash, role, locale FROM users WHERE id = :id',
         );
         $statement->execute(['id' => $id]);
         $row = $statement->fetch();
@@ -37,10 +38,11 @@ final class PdoUserRepository implements UserRepository
         return $row === false ? null : $this->mapRow($row);
     }
 
-    public function create(string $email, string $name, string $passwordHash, Role $role): void
+    public function create(string $email, string $name, string $passwordHash, Role $role, Locale $locale): void
     {
         $statement = $this->database->prepare(
-            'INSERT INTO users (email, name, password_hash, role) VALUES (:email, :name, :password_hash, :role)',
+            'INSERT INTO users (email, name, password_hash, role, locale)'
+            . ' VALUES (:email, :name, :password_hash, :role, :locale)',
         );
 
         try {
@@ -49,6 +51,7 @@ final class PdoUserRepository implements UserRepository
                 'name' => $name,
                 'password_hash' => $passwordHash,
                 'role' => $role->value,
+                'locale' => $locale->value,
             ]);
         } catch (\PDOException $exception) {
             if (($exception->errorInfo[0] ?? null) === self::UNIQUE_VIOLATION) {
@@ -57,6 +60,12 @@ final class PdoUserRepository implements UserRepository
 
             throw $exception;
         }
+    }
+
+    public function updateLocale(int $id, Locale $locale): void
+    {
+        $statement = $this->database->prepare('UPDATE users SET locale = :locale WHERE id = :id');
+        $statement->execute(['locale' => $locale->value, 'id' => $id]);
     }
 
     /** @param array<string, mixed> $row */
@@ -68,6 +77,7 @@ final class PdoUserRepository implements UserRepository
             (string) $row['name'],
             (string) $row['password_hash'],
             Role::from((string) $row['role']),
+            Locale::from((string) $row['locale']),
         );
     }
 }

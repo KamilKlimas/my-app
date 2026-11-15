@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Model;
 
+use App\I18n\Locale;
+
 final readonly class User
 {
     public function __construct(
@@ -12,6 +14,7 @@ final readonly class User
         public string $name,
         public string $passwordHash,
         public Role $role,
+        public Locale $locale,
     ) {
     }
 }

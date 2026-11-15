@@ -36,6 +36,18 @@ final class RedirectTest extends TestCase
         $this->assertSame($path, (new Redirect($path))->path());
     }
 
+    #[DataProvider('localPaths')]
+    public function testLocalPathIsRecognisedAsLocal(string $path): void
+    {
+        $this->assertTrue(Redirect::isLocalPath($path));
+    }
+
+    #[DataProvider('foreignTargets')]
+    public function testForeignTargetIsNotRecognisedAsLocal(string $target): void
+    {
+        $this->assertFalse(Redirect::isLocalPath($target));
+    }
+
     #[DataProvider('foreignTargets')]
     public function testRedirectRejectsTargetOutsideTheApp(string $target): void
     {

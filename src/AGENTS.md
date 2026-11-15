@@ -29,7 +29,7 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 - Passwords only through `password_hash()` and `password_verify()`.
 - A failed login never reveals whether the e-mail exists.
 - The session starts only in `App\Http\Session::start()`, called once from `public/index.php`; code reads and writes it
-  through `Session`, never `$_SESSION` directly. It holds only the user id and the CSRF token; name and role come from the database.
+  through `Session`, never `$_SESSION` directly. It holds only the user id, the CSRF token and the chosen `locale`; name and role come from the database.
 - Regenerate the session id after login. The session cookie is `HttpOnly` and `SameSite=Lax`, and `Secure` when `SESSION_SECURE=1` (production).
 - The user id and role come only from the server-side session, never from request data. Code reads the logged-in user only
   through `App\Http\CurrentUser` (session key `CurrentUser::SESSION_KEY`, account loaded once per request).

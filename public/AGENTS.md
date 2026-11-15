@@ -11,6 +11,8 @@ Entry point and frontend rules. They add to the root `AGENTS.md`; if the two eve
 - Views in `views/` only present data prepared by a controller: no SQL, no business decisions.
 - Escape every dynamic value with `$e()`, which `View::render()` passes to each view. Never call `htmlspecialchars()` in a view.
 - Every user-facing text comes from `$t('key')` (catalogues in `lang/`, new keys go into both `pl.php` and `en.php`), printed as `$e($t('key'))`.
+  Numbers, counts and dates inside a sentence are parameters formatted by ICU in the catalogue (`{count, plural, ...}`, `{at, date, ::MMMd}`),
+  never glued from pieces in the template and never formatted with `date()`/`number_format()` for display.
   Controllers pass keys; texts that JavaScript swaps go into `data-*` attributes (see the theme button).
 - Repeated parts (header, navigation, footer, the demo upload form) live in `views/partials/` and are included, never copied.
 - Semantic HTML. Every form field has a `<label>`, images have `alt`, everything works with a keyboard.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\I18n\Locale;
 use App\Model\Role;
 use App\Model\User;
 use App\Repository\DuplicateEmail;
@@ -44,6 +45,7 @@ final class AuthService
         string $name,
         #[\SensitiveParameter] string $password,
         #[\SensitiveParameter] string $passwordConfirmation,
+        Locale $locale,
     ): array {
         $errors = $this->validateRegistration($email, $name, $password, $passwordConfirmation);
 
@@ -52,7 +54,7 @@ final class AuthService
         }
 
         try {
-            $this->users->create($email, $name, password_hash($password, PASSWORD_DEFAULT), Role::User);
+            $this->users->create($email, $name, password_hash($password, PASSWORD_DEFAULT), Role::User, $locale);
         } catch (DuplicateEmail) {
             // Same result as success: the form must not reveal which e-mails have accounts.
         }

@@ -8,11 +8,16 @@ final class Redirect extends \RuntimeException
 {
     public function __construct(private readonly string $path)
     {
-        if (!preg_match('~^/(?![/\\\\])~', $path)) {
+        if (!self::isLocalPath($path)) {
             throw new \InvalidArgumentException('Redirect target must be a local path: ' . $path);
         }
 
         parent::__construct('Redirect to ' . $path);
+    }
+
+    public static function isLocalPath(string $path): bool
+    {
+        return preg_match('~^/(?![/\\\\])~', $path) === 1;
     }
 
     public function path(): string

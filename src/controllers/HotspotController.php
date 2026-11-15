@@ -12,32 +12,31 @@ final class HotspotController extends AppController
 {
     private const OPTIONS = [
         'map' => [
-            'label' => 'Map',
-            'options' => [
-                'de_mirage' => 'de_mirage',
-                'de_inferno' => 'de_inferno',
-                'de_ancient' => 'de_ancient',
-                'de_nuke' => 'de_nuke',
-                'de_anubis' => 'de_anubis',
-            ],
+            'label' => 'common.map',
+            'options' => ['de_mirage' => null, 'de_inferno' => null, 'de_ancient' => null, 'de_nuke' => null, 'de_anubis' => null],
         ],
         'days' => [
-            'label' => 'Period',
-            'options' => ['7' => 'Last 7 days', '30' => 'Last 30 days', '90' => 'Last 90 days', 'all' => 'All time'],
+            'label' => 'hotspots.filter.period',
+            'options' => [
+                '7' => 'hotspots.period.7',
+                '30' => 'hotspots.period.30',
+                '90' => 'hotspots.period.90',
+                'all' => 'hotspots.period.all',
+            ],
         ],
         'issue' => [
-            'label' => 'Issue',
+            'label' => 'hotspots.filter.issue',
             'options' => [
-                'all' => 'All issues',
-                'crosshair' => 'Crosshair placement',
-                'moving' => 'Shooting while moving',
-                'position' => 'Not visible (positioning)',
-                'flashed' => 'Flashed',
+                'all' => 'hotspots.filter.issue.all',
+                'crosshair' => 'issue.crosshair',
+                'moving' => 'issue.moving',
+                'position' => 'issue.position',
+                'flashed' => 'issue.flashed',
             ],
         ],
         'side' => [
-            'label' => 'Side',
-            'options' => ['both' => 'Both', 'ct' => 'CT', 't' => 'T'],
+            'label' => 'hotspots.filter.side',
+            'options' => ['both' => 'hotspots.filter.side.both', 'ct' => 'hotspots.filter.side.ct', 't' => 'hotspots.filter.side.t'],
         ],
     ];
 
@@ -70,20 +69,20 @@ final class HotspotController extends AppController
             'filters' => $filters,
             'query' => http_build_query($selected),
             'mapName' => $selected['map'],
-            'periodLabel' => strtolower(self::OPTIONS['days']['options'][$selected['days']]),
+            'periodKey' => self::OPTIONS['days']['options'][$selected['days']],
             'totalDeaths' => 41,
             'spots' => [
-                ['from' => 'A Ramp', 'to' => 'A Site', 'deaths' => 7, 'issue' => 'Shooting while moving', 'issueShare' => 57, 'trainable' => true, 'x' => 78, 'y' => 74],
-                ['from' => 'Top Mid', 'to' => 'Window', 'deaths' => 4, 'issue' => 'Crosshair placement', 'issueShare' => 75, 'trainable' => true, 'x' => 52, 'y' => 48],
-                ['from' => 'B Apartments', 'to' => 'B Site', 'deaths' => 3, 'issue' => 'Crosshair placement', 'issueShare' => 67, 'trainable' => true, 'x' => 18, 'y' => 28],
-                ['from' => 'Connector', 'to' => 'CT Spawn', 'deaths' => 2, 'issue' => 'Flashed', 'issueShare' => 100, 'trainable' => false, 'x' => 40, 'y' => 62],
+                ['from' => 'A Ramp', 'to' => 'A Site', 'deaths' => 7, 'issue' => 'moving', 'issueShare' => 57, 'trainable' => true, 'x' => 78, 'y' => 74],
+                ['from' => 'Top Mid', 'to' => 'Window', 'deaths' => 4, 'issue' => 'crosshair', 'issueShare' => 75, 'trainable' => true, 'x' => 52, 'y' => 48],
+                ['from' => 'B Apartments', 'to' => 'B Site', 'deaths' => 3, 'issue' => 'crosshair', 'issueShare' => 67, 'trainable' => true, 'x' => 18, 'y' => 28],
+                ['from' => 'Connector', 'to' => 'CT Spawn', 'deaths' => 2, 'issue' => 'flashed', 'issueShare' => 100, 'trainable' => false, 'x' => 40, 'y' => 62],
             ],
             'spotsTotal' => 12,
             'causes' => [
-                ['id' => 'crosshair', 'label' => 'Crosshair placement', 'share' => 38],
-                ['id' => 'moving', 'label' => 'Shooting while moving', 'share' => 31],
-                ['id' => 'position', 'label' => 'Not visible (positioning)', 'share' => 19],
-                ['id' => 'flashed', 'label' => 'Flashed', 'share' => 12],
+                ['id' => 'crosshair', 'share' => 38],
+                ['id' => 'moving', 'share' => 31],
+                ['id' => 'position', 'share' => 19],
+                ['id' => 'flashed', 'share' => 12],
             ],
         ]);
     }

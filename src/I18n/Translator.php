@@ -23,19 +23,25 @@ final class Translator
         return dirname(__DIR__, 2) . '/lang/' . $locale->value . '.php';
     }
 
-    /** @param array<string, string|int> $parameters */
+    /** @param array<string, string|int|float|\DateTimeInterface> $parameters */
     public function translate(string $key, array $parameters = []): string
     {
         if (!isset($this->messages[$key])) {
             throw new MissingTranslation($key, $this->locale);
         }
 
-        $replacements = [];
+        $formatter = \MessageFormatter::create($this->locale->value, $this->messages[$key]);
 
-        foreach ($parameters as $name => $value) {
-            $replacements['{' . $name . '}'] = (string) $value;
+        if ($formatter === null) {
+            throw new \LogicException(sprintf('Invalid message "%s": %s', $key, intl_get_error_message()));
         }
 
-        return strtr($this->messages[$key], $replacements);
+        $text = $formatter->format($parameters);
+
+        if ($text === false) {
+            throw new \LogicException(sprintf('Cannot format "%s": %s', $key, $formatter->getErrorMessage()));
+        }
+
+        return $text;
     }
 }

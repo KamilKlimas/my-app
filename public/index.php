@@ -6,6 +6,7 @@ use App\Controller\AdminController;
 use App\Controller\DefaultController;
 use App\Controller\DemoController;
 use App\Controller\HotspotController;
+use App\Controller\LocaleController;
 use App\Controller\SecurityController;
 use App\Controller\TrainingController;
 use App\Database\ConnectionFactory;
@@ -24,6 +25,7 @@ use App\I18n\Locale;
 use App\I18n\Translator;
 use App\Repository\PdoUserRepository;
 use App\Routing;
+use App\Service\AccountService;
 use App\Service\AuthService;
 use App\View\View;
 
@@ -34,7 +36,7 @@ try {
     $csrf = new Csrf($session);
     $csrf->ensureToken();
     $locale = Locale::resolve($session->string(Locale::SESSION_KEY), $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null);
-    $view = new View(Translator::forLocale($locale), $csrf);
+    $view = new View(Translator::forLocale($locale), $csrf, $_SERVER['REQUEST_URI']);
     $csrf->verifyRequest($_SERVER['REQUEST_METHOD'], $_POST);
     $database = (new ConnectionFactory())->create(DatabaseConfig::fromEnvironment(getenv()));
 
@@ -47,7 +49,10 @@ try {
         $session,
         $csrf,
         $currentUser,
+        $locale,
     );
+    $accountService = new AccountService($userRepository);
+    $localeController = fn (): LocaleController => new LocaleController($session, $currentUser, $accountService);
 
     $demoController = fn (): DemoController => new DemoController($view, $currentUser);
     $hotspotController = fn (): HotspotController => new HotspotController($view, $currentUser);
@@ -60,6 +65,7 @@ try {
     $routing->get('/register', $securityController, 'register', Access::Guest);
     $routing->post('/register', $securityController, 'createAccount', Access::Guest);
     $routing->post('/logout', $securityController, 'logout', Access::Anyone);
+    $routing->post('/locale', $localeController, 'change', Access::Anyone);
     $routing->get('/demos', $demoController, 'index', Access::User);
     $routing->get('/demos/{id}', $demoController, 'show', Access::User);
     $routing->get('/hotspots', $hotspotController, 'index', Access::User);

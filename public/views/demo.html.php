@@ -6,76 +6,76 @@ $won = $demo['score'][0] > $demo['score'][1];
 ?>
 
     <main>
-        <nav aria-label="Breadcrumb">
+        <nav aria-label="<?= $e($t('demo.breadcrumb')) ?>">
             <ol>
-                <li><a href="/demos">My demos</a></li>
+                <li><a href="/demos"><?= $e($t('demos.heading')) ?></a></li>
                 <li><?= $e($demo['map']) ?></li>
-                <li><time datetime="<?= $e($playedAt->format('Y-m-d')) ?>"><?= $e($playedAt->format('M j')) ?></time></li>
+                <li><time datetime="<?= $e($playedAt->format('Y-m-d')) ?>"><?= $e($t('common.date', ['at' => $playedAt])) ?></time></li>
             </ol>
         </nav>
 
         <header>
             <h1>
                 <?= $e($demo['map']) ?> &middot; <?= (int) $demo['score'][0] ?>&ndash;<?= (int) $demo['score'][1] ?>
-                <small><?= $won ? 'Win' : 'Loss' ?></small>
+                <small><?= $e($t($won ? 'common.win' : 'common.loss')) ?></small>
             </h1>
             <p>
-                <time datetime="<?= $e($playedAt->format('Y-m-d\TH:i')) ?>"><?= $e($playedAt->format('M j, H:i')) ?></time>
+                <time datetime="<?= $e($playedAt->format('Y-m-d\TH:i')) ?>"><?= $e($t('common.date_time', ['at' => $playedAt])) ?></time>
                 &middot; <?= $e($match['mode']) ?>
-                &middot; <?= (int) $match['rounds'] ?> rounds
-                &middot; parsed in <?= (int) $match['parsedIn'] ?> s
+                &middot; <?= $e($t('demo.rounds', ['count' => (int) $match['rounds']])) ?>
+                &middot; <?= $e($t('demo.parsed_in', ['seconds' => (int) $match['parsedIn']])) ?>
             </p>
             <dl>
                 <div>
-                    <dt>Lost duels</dt>
+                    <dt><?= $e($t('demos.column.lost')) ?></dt>
                     <dd><?= (int) $demo['lostDuels'] ?></dd>
                 </div>
                 <div>
-                    <dt>Trainable</dt>
+                    <dt><?= $e($t('demo.trainable')) ?></dt>
                     <dd><?= (int) $trainableCount ?></dd>
                 </div>
             </dl>
             <form method="post" action="/demos/<?= (int) $demo['id'] ?>/training-set">
                 <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
-                <button type="submit">Build training set (<?= (int) $selectedCount ?>)</button>
+                <button type="submit"><?= $e($t('demo.build_set', ['count' => (int) $selectedCount])) ?></button>
             </form>
         </header>
 
         <section aria-labelledby="radar-heading">
-            <h2 id="radar-heading">Round <?= (int) $selectedDuel['round'] ?> &middot; <?= $e($selectedDuel['time']) ?> left</h2>
+            <h2 id="radar-heading"><?= $e($t('demo.round_heading', ['round' => (int) $selectedDuel['round'], 'time' => $selectedDuel['time']])) ?></h2>
             <p><?= $e($selectedDuel['weapons']) ?></p>
 
             <figure>
-                <div role="img" aria-label="Radar of <?= $e($demo['map']) ?> with your position, aim line and the enemy position">
-                    Radar placeholder: <?= $e($demo['map']) ?>
+                <div role="img" aria-label="<?= $e($t('demo.radar.label', ['map' => $demo['map']])) ?>">
+                    <?= $e($t('demo.radar.placeholder', ['map' => $demo['map']])) ?>
                 </div>
                 <figcaption>
                     <ul>
-                        <li>You &mdash; line shows where you were aiming</li>
-                        <li>Enemy</li>
-                        <li>Line of sight</li>
-                        <li>Other deaths</li>
+                        <li><?= $e($t('demo.legend.you')) ?></li>
+                        <li><?= $e($t('demo.legend.enemy')) ?></li>
+                        <li><?= $e($t('demo.legend.sight')) ?></li>
+                        <li><?= $e($t('demo.legend.other_deaths')) ?></li>
                     </ul>
-                    <small>Map placeholder &mdash; the real radar image is uploaded by an admin per map and calibrated with the map's pos_x / pos_y / scale.</small>
+                    <small><?= $e($t('demo.radar.note')) ?></small>
                 </figcaption>
             </figure>
 
-            <h3>Duel metrics</h3>
+            <h3><?= $e($t('demo.metrics')) ?></h3>
             <dl>
                 <?php foreach ($metrics as $metric): ?>
                     <div>
-                        <dt><?= $e($metric['label']) ?></dt>
-                        <dd><?= $e($metric['value']) ?> <small><?= $e($metric['unit']) ?></small></dd>
+                        <dt><?= $e($t('demo.metric.' . $metric['code'])) ?></dt>
+                        <dd><?= (int) $metric['value'] ?> <small><?= $e($metric['unit']) ?></small></dd>
                     </div>
                 <?php endforeach; ?>
             </dl>
 
-            <p><strong>Verdict:</strong> <?= $e($verdict) ?></p>
+            <p><strong><?= $e($t('demo.verdict')) ?></strong> <?= $e($t('demo.verdict.' . $verdict)) ?></p>
         </section>
 
         <section aria-labelledby="duels-heading">
-            <h2 id="duels-heading">Lost duels</h2>
-            <p><?= count($duels) ?> of <?= (int) $demo['lostDuels'] ?> shown &middot; select one to see it on the radar</p>
+            <h2 id="duels-heading"><?= $e($t('demos.column.lost')) ?></h2>
+            <p><?= $e($t('demo.duels_shown', ['shown' => count($duels), 'total' => (int) $demo['lostDuels']])) ?></p>
 
             <form method="post" action="/demos/<?= (int) $demo['id'] ?>/training-set">
                 <?php require __DIR__ . '/partials/csrf-field.html.php'; ?>
@@ -91,10 +91,12 @@ $won = $demo['score'][0] > $demo['score'][1];
                                     </h3>
                                     <p><?= $e($duel['weapons']) ?></p>
                                 </header>
-                                <p>You: <?= $e($duel['you']) ?> &rarr; Enemy: <?= $e($duel['enemy']) ?></p>
+                                <p><?= $e($duel['enemy'] === null
+                                    ? $t('demo.positions_behind', ['you' => $duel['you']])
+                                    : $t('demo.positions', ['you' => $duel['you'], 'enemy' => $duel['enemy']])) ?></p>
                                 <ul>
-                                    <?php foreach ($duel['tags'] as $tag): ?>
-                                        <li><?= $e($tag) ?></li>
+                                    <?php foreach ($duel['tags'] as [$tag, $tagParameters]): ?>
+                                        <li><?= $e($t('tag.' . $tag, $tagParameters)) ?></li>
                                     <?php endforeach; ?>
                                 </ul>
                                 <p>
@@ -102,10 +104,10 @@ $won = $demo['score'][0] > $demo['score'][1];
                                            name="rounds[]" value="<?= (int) $duel['round'] ?>"
                                            <?= $duel['trainable'] ? 'checked' : 'disabled' ?>>
                                     <label for="duel-<?= (int) $duel['round'] ?>">
-                                        <?= $duel['trainable'] ? 'Add to training set' : 'Not trainable' ?>
+                                        <?= $e($t($duel['trainable'] ? 'demo.add_to_set' : 'demo.not_trainable')) ?>
                                     </label>
                                     <?php if ($duel['note'] !== null): ?>
-                                        <small><?= $e($duel['note']) ?></small>
+                                        <small><?= $e($t('tag.' . $duel['note'][0], $duel['note'][1])) ?></small>
                                     <?php endif; ?>
                                 </p>
                             </article>

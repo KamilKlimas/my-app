@@ -9,6 +9,7 @@ use App\Http\CurrentUser;
 use App\Http\Query;
 use App\Http\Redirect;
 use App\Http\Session;
+use App\I18n\Locale;
 use App\Service\AuthService;
 use App\View\View;
 
@@ -20,6 +21,7 @@ final class SecurityController extends AppController
         private readonly Session $session,
         private readonly Csrf $csrf,
         private readonly CurrentUser $currentUser,
+        private readonly Locale $locale,
     ) {
     }
 
@@ -49,6 +51,7 @@ final class SecurityController extends AppController
             $name,
             $form->string('password', ''),
             $form->string('password_confirmation', ''),
+            $this->locale,
         );
 
         if ($errors !== []) {
@@ -76,6 +79,7 @@ final class SecurityController extends AppController
 
         $this->session->regenerate();
         $this->session->set(CurrentUser::SESSION_KEY, $user->id);
+        $this->session->set(Locale::SESSION_KEY, $user->locale->value);
         $this->csrf->rotate();
 
         throw new Redirect('/demos');

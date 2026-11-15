@@ -9,8 +9,8 @@ po laboratorium, bez frameworków PHP i CSS.
 ## Stan projektu
 
 Po etapie M1 (fundamenty) strony renderują **dane przykładowe** zdefiniowane w kontrolerach. Baza ma już schemat
-(`users`, `maps`) i dane demo. Logowanie działa na danych z bazy (sesja z regenerowanym id, CSRF), ale strony jeszcze
-nie czytają zalogowanego użytkownika: nagłówek pokazuje przykładowego gracza, a trasy nie są chronione.
+(`users`, `maps`) i dane demo. Logowanie działa na danych z bazy (sesja z regenerowanym id, CSRF), a każda trasa
+ma poziom dostępu (akapit „Dostęp” pod tabelą tras). Nagłówek pokazuje zalogowane konto (nazwa i rola z bazy).
 
 **Motyw jasny i ciemny:** przycisk w nagłówku przełącza `data-theme` na `<html>`, a wybór zapisuje się w `localStorage`
 (klucz `theme`). Bez zapisanego wyboru obowiązuje ustawienie systemu (`prefers-color-scheme`). Powrót do ustawienia
@@ -21,7 +21,7 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Ka�
 
 | Trasa              | Kontroler i akcja              | Co pokazuje                                    |
 |--------------------|--------------------------------|------------------------------------------------|
-| `/`                | `DemoController::upload`       | strona startowa: wgrywanie dema, jak działa DuelLab, wykrywane błędy |
+| `/`                | `SecurityController::home`     | przekierowanie: zalogowany → `/demos`, gość → `/login` |
 | `/login`           | `SecurityController::login`    | formularz logowania (po polsku); `?registered=1` pokazuje komunikat po rejestracji |
 | `/register`        | `SecurityController::register` | formularz rejestracji (po polsku)              |
 | `POST /register`   | `SecurityController::createAccount` | nowe konto z rolą USER → 303 na `/login?registered=1`; błędne pola → 422 z komunikatem przy polu; zajęty e-mail kończy się tak samo jak sukces (nie zdradza, kto ma konto) |
@@ -33,6 +33,10 @@ do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Ka�
 | `/training`        | `TrainingController::index`    | zestawy treningowe                             |
 | `/admin`           | `AdminController::index`       | panel administratora                           |
 | każda inna         | `DefaultController::error`     | strona 404                                     |
+
+Dostęp: `/login` i `/register` (GET i POST) tylko dla gościa (zalogowany → 303 na `/demos`); `/demos`, `/demos/{id}`, `/hotspots`,
+`/training` dla zalogowanego (gość → 303 na `/login`); `/admin` tylko dla ADMIN (USER → 403, gość → 303 na `/login`);
+`/` i `POST /logout` dla każdego. Sprawdza to `AccessGuard` przed kontrolerem, więc ukryty link to nie jedyna ochrona.
 
 `{id}` dopasowuje tylko cyfry, więc np. `/demos/abc` nie pasuje do żadnej trasy i zwraca 404.
 Parametr query podany jako tablica (np. `/demos?map[]=x`) kończy się stroną 400. Każdy błąd (400, 403, 404, 503) to wyjątek `HttpException`, który `public/index.php`
@@ -152,7 +156,7 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   └── php/                # obraz PHP-FPM, entrypoint (composer install)
 ├── docs/                   # opis produktu, architektura, roadmapa, kryteria oceny
 ├── public/                 # document root nginx
-│   ├── css/                # variables → base → layout → components → demos → upload → states → responsive
+│   ├── css/                # variables → base → layout → components → demos → states → responsive
 │   ├── js/                 # moduły przeglądarki (theme.js)
 │   ├── index.php           # front controller, rejestracja tras
 │   └── views/              # szablony stron + partials/ (header, footer, upload-form, csrf-field)

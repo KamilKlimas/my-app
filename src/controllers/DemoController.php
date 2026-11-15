@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\CurrentUser;
 use App\Http\NotFound;
 use App\Http\Query;
 
 final class DemoController extends AppController
 {
-    private const USER = ['name' => 'nightowl', 'role' => 'USER'];
-
     private const DEMOS = [
         ['id' => 1, 'map' => 'de_mirage', 'playedAt' => '2026-10-06 21:40', 'score' => [13, 10], 'lostDuels' => 9, 'status' => 'ready'],
         ['id' => 2, 'map' => 'de_inferno', 'playedAt' => '2026-10-06 20:55', 'score' => [8, 13], 'lostDuels' => 12, 'status' => 'ready'],
@@ -36,14 +35,8 @@ final class DemoController extends AppController
 
     private const OUTCOMES = ['all' => 'All outcomes', 'win' => 'Wins', 'loss' => 'Losses'];
 
-    public function upload(): void
+    public function __construct(private readonly CurrentUser $currentUser)
     {
-        $this->render('upload', [
-            'pageTitle' => 'Upload a demo',
-            'activeNav' => 'demos',
-            'user' => self::USER,
-            'issues' => self::ISSUES,
-        ]);
     }
 
     public function index(): void
@@ -53,7 +46,7 @@ final class DemoController extends AppController
         $this->render('demos', [
             'pageTitle' => 'My demos',
             'activeNav' => 'demos',
-            'user' => self::USER,
+            'user' => $this->currentUser->user(),
             'stats' => self::STATS + [
                 'duelsPerMatch' => round(self::STATS['lostDuels'] / self::STATS['demosAnalysed'], 1),
                 'convertedPercent' => (int) round(self::STATS['trainableDuels'] / self::STATS['lostDuels'] * 100),
@@ -146,7 +139,7 @@ final class DemoController extends AppController
         $this->render('demo', [
             'pageTitle' => $demo['map'],
             'activeNav' => 'demos',
-            'user' => self::USER,
+            'user' => $this->currentUser->user(),
             'demo' => $demo,
             'match' => ['mode' => 'Premier', 'rounds' => 23, 'parsedIn' => 48],
             'trainableCount' => 6,

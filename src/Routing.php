@@ -5,19 +5,25 @@ declare(strict_types=1);
 namespace App;
 
 use App\Controller\AppController;
+use App\Http\Access;
+use App\Http\AccessGuard;
 
 final class Routing
 {
     private array $routes = [];
 
-    public function get(string $path, string|\Closure $controller, string $action): void
+    public function __construct(private readonly AccessGuard $guard)
     {
-        $this->add('GET', $path, $controller, $action);
     }
 
-    public function post(string $path, string|\Closure $controller, string $action): void
+    public function get(string $path, string|\Closure $controller, string $action, Access $access): void
     {
-        $this->add('POST', $path, $controller, $action);
+        $this->add('GET', $path, $controller, $action, $access);
+    }
+
+    public function post(string $path, string|\Closure $controller, string $action, Access $access): void
+    {
+        $this->add('POST', $path, $controller, $action, $access);
     }
 
     private function add(
@@ -25,12 +31,14 @@ final class Routing
         string $path,
         string|\Closure $controller,
         string $action,
+        Access $access,
     ): void {
         $this->routes[] = [
             'method' => $method,
             'pattern' => $this->createPattern($path),
             'controller' => $controller,
             'action' => $action,
+            'access' => $access,
         ];
     }
 
@@ -76,6 +84,8 @@ final class Routing
                     ctype_digit($value) ? (int) $value : $value,
                 $parameters,
             );
+
+            $this->guard->check($route['access']);
 
             $controller = $this->createController($route['controller']);
             $controller->{$route['action']}(...$parameters);

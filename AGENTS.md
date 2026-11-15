@@ -16,11 +16,12 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 
 ## Current state (after M1: foundations; lab 5: light and dark theme)
 
-- Pages render hard-coded mock data defined in the controllers (including the `USER` shown in the header); there is no translation system yet.
+- Pages render hard-coded mock data defined in the controllers; there is no translation system yet. The header shows the logged-in
+  user from the database: every page controller gets `CurrentUser` through a factory and passes `'user' => $this->currentUser->user()`.
 - Login works against the database: `GET /login` (`SecurityController::login`) shows the form, `POST /login` (`authenticate`) checks it
   through `AuthService`. Success: `session_regenerate_id(true)`, `user_id` in the session, a new CSRF token, 303 to `/demos`.
   Failure: the form again with status 422, one generic message and the e-mail kept. An e-mail over 254 characters or a password
-  over 72 bytes (bcrypt's limit) fails without a query. No page reads `user_id` yet (guards come later).
+  over 72 bytes (bcrypt's limit) fails without a query. The session key is `CurrentUser::SESSION_KEY` (`user_id`).
 - Registration: `GET /register` (`SecurityController::register`) and `POST /register` (`createAccount`) through
   `AuthService::register()`, which holds every rule (e-mail, name 3–32, password 8 characters to 72 bytes, matching confirmation)
   and returns error codes per field; the controller maps them to Polish text. Errors: 422 with the form, e-mail and name kept.
@@ -28,6 +29,13 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   `PdoUserRepository::create()` turns SQLSTATE `23505` into `App\Repository\DuplicateEmail`; there is no `SELECT` before the `INSERT`.
 - `POST /logout` (`SecurityController::logout`, the form in the header) runs `Session::destroy()`: empties the session data,
   expires the cookie with the same parameters, `session_destroy()`, then 303 to `/login`. The old session id is dead afterwards.
+- Every route declares who may open it: the required last argument of `get()`/`post()` is an `App\Http\Access`
+  (`Anyone`, `Guest`, `User`, `Admin`). After a route matches and before its controller is built, `Routing` calls
+  `AccessGuard::check()`: a logged-in user on a `Guest` route (`/login`, `/register`) → 303 `/demos`; a guest on a `User`
+  or `Admin` route → 303 `/login` (also for ids that don't exist, so a guest learns nothing about them); a USER on an
+  `Admin` route (`/admin`) → 403. `POST /logout` and `/` are `Anyone`; `/` (`SecurityController::home`) redirects to `/demos` or `/login`.
+  The guard reads the user through `App\Http\CurrentUser`: the id from the session, then `UserRepository::findById()`, once per request.
+  An id whose account no longer exists is removed from the session and the request continues as a guest.
 - Every request starts a session (`App\Http\Session::start()` in `public/index.php`, before the database): cookie `duellab_session`,
   `HttpOnly`, `SameSite=Lax`, strict mode, `Secure` only with `SESSION_SECURE=1`. It holds the CSRF token and, after login, the user id (`int`).
 - Every POST is checked for a CSRF token in `public/index.php`, right after the session starts and before the database
@@ -36,7 +44,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   and every POST form includes `partials/csrf-field.html.php`.
 - `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
   and `SecurityController` uses it through `PdoUserRepository` → `AuthService`. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
-- User layers: `App\Model\User` and `Role`, `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive) and `create()`,
+- User layers: `App\Model\User` and `Role`, `App\Repository\UserRepository` with `PdoUserRepository::findByEmail()` (case-insensitive), `findById()` and `create()`,
   and `App\Service\AuthService::authenticate()` and `register()`. Routes are registered inside the `try` in `public/index.php`, after the services exist,
   because a controller factory (`fn () => new SecurityController(...)`) captures them when it is created.
 - The database schema has `users` and `maps` (`docker/db/001_create_users.sql`, `002_create_maps.sql`); only `PdoUserRepository` reads and writes `users`, called by `POST /login` and `POST /register`.
@@ -44,18 +52,18 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   so it can be re-run by hand). It holds only bcrypt hashes; the demo password is in the README.
 - PHPUnit 12 is installed as a dev dependency and configured in `phpunit.xml` (suite `tests/Unit`, fails on warnings,
   notices and deprecations). `tests/Unit/RoutingTest.php` covers the router (static, `{id}`, method, query string,
-  route order, invalid controller, controller factories) through the fixtures `SpyController` and `InjectedController` in `tests/Unit/Fixture/`; `tests/Unit/Http/QueryTest.php`
-  covers reading query parameters; `SessionTest.php` covers session access on a plain array and parsing `SESSION_SECURE`; `CsrfTest.php` covers the token and the POST check; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
+  route order, invalid controller, controller factories, the access check before the controller) through the fixtures `SpyController` and `InjectedController` in `tests/Unit/Fixture/`; `tests/Unit/Http/QueryTest.php`
+  covers reading query parameters; `SessionTest.php` covers session access on a plain array and parsing `SESSION_SECURE`; `AccessGuardTest.php` covers every access level for a guest, a USER and an ADMIN; `CurrentUserTest.php` covers reading the user from the session id; `CsrfTest.php` covers the token and the POST check; `HttpExceptionTest.php` and `RedirectTest.php` cover status codes and local-only redirect targets;
   `tests/Unit/Database/DatabaseConfigTest.php` covers reading the `DB_*` variables and the DSN;
   `tests/Unit/Service/AuthServiceTest.php` covers login checks and registration rules against the in-memory double `Fixture/InMemoryUserRepository.php`.
 - The only JavaScript is the theme: an inline anti-FOUC script in the header partial picks `data-theme` on `<html>`
   (saved `localStorage` `theme`, else `prefers-color-scheme`), and the module `public/js/theme.js` wires the Theme button.
   A switch cross-fades once via the View Transitions API (instant without support or with `prefers-reduced-motion`).
 - Forms in the templates (demo upload, `/admin/maps`, ...) post to routes that don't exist yet, so with a valid token they get 404.
-- `/` renders the start page (`DemoController::upload`: upload form, how it works, detected mistakes); `/demos` is "My demos"
+- `/` only redirects (see route access); `/demos` is "My demos"
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
   a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
-  rendered in one place; `Forbidden` (403) is thrown only by the CSRF check so far; `Redirect` is used by `POST /login`, `POST /register` and `POST /logout`. `ServiceUnavailable` (503) covers a failed database connection.
+  rendered in one place; `Forbidden` (403) is thrown by the CSRF check and by `AccessGuard`; `Redirect` is used by `AccessGuard`, `/`, `POST /login`, `POST /register` and `POST /logout`. `ServiceUnavailable` (503) covers a failed database connection.
 - UI text is hard-coded: the login page is Polish, the other pages English.
 
 ## Stack and services
@@ -108,7 +116,8 @@ public/js/                    browser scripts, loaded as modules by the footer p
 src/Routing.php               App\Routing: get()/post() routes, {param} placeholders, dispatch()
 src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
 src/Http/                     App\Http\Query (typed $_GET access), Session (starts the session, typed $_SESSION access), Csrf (token, POST check), HttpException + BadRequest/Forbidden/NotFound/ServiceUnavailable
-                              (400/403/404/503), Redirect (303 to a local path)
+                              (400/403/404/503), Redirect (303 to a local path), Access (route levels), AccessGuard (checks them),
+                              CurrentUser (the logged-in user from the session id)
 src/Database/                 App\Database\DatabaseConfig (DB_* variables, DSN), ConnectionFactory (PDO), ConnectionFailed
 src/Model/                    App\Model\*: User (readonly), Role (enum USER|ADMIN); no SQL
 src/Repository/               App\Repository\*: UserRepository (interface), PdoUserRepository; the only place with SQL
@@ -123,19 +132,20 @@ phpunit.xml                   PHPUnit config: suite tests/Unit, strict failure f
 
 ## How a request works
 
-nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `new XController()` → action → `AppController::render()`
+nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `AccessGuard::check()` → `new XController()` → action → `AppController::render()`
 → template in `public/views/` with the partials. No route matched → `public/index.php` throws `NotFound`.
 One `try` in `public/index.php` first opens the database connection, then dispatches. It catches `Redirect` (`Location` + 303),
 any `HttpException` and `ConnectionFailed` (as `ServiceUnavailable`) → `DefaultController::error()`,
 which sets the status and renders the `error` page. Throw before `render()`, otherwise part of the page is already sent.
 
-- **Routes:** `$routing->get('/demos/{id}', DemoController::class, 'show');` in `public/index.php`. `{name}` matches digits only,
+- **Routes:** `$routing->get('/demos/{id}', DemoController::class, 'show', Access::User);` in `public/index.php`. The `Access` argument
+  is required, so no route exists without a decision about who may open it. `{name}` matches digits only,
   is cast to `int` and passed as a **named argument**, so the action parameter must have the same name (`show(int $id)`).
   The first matching route wins; keep `/` last.
 - **Controllers** extend `AppController` and are registered by class name (the router does `new $class()`) or, when they
   need collaborators, by a factory closure (`fn () => new XController($service)`), called only for the matched route. They end with
   `$this->render('<template>', [...])`. Usual variables: `pageTitle` (required by the header), `activeNav`
-  (`demos|hotspots|training|admin`), `user` (`['name' => ..., 'role' => 'USER'|'ADMIN']`, `null` hides the nav).
+  (`demos|hotspots|training|admin`), `user` (`?App\Model\User` from `CurrentUser::user()`, `null` hides the nav).
 - **Missing record:** `throw new NotFound();`. A new status gets its own `HttpException` subclass and a title and lead
   in `DefaultController::PAGES`. `Redirect` accepts only a local path (`/…`, not `//…` or `/\…`), against open redirects.
 - **Query parameters** are read through `new Query($_GET)` in the controller and accepted only from a whitelist,
@@ -150,7 +160,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 - PSR-12 formatting. Short methods (aim for 20 lines or fewer); names describe responsibility.
 - No `die()`, `exit`, `var_dump` or `print_r` in committed code.
 - Controllers: no SQL, no HTML strings, no business rules. Mock arrays are the accepted exception until the database exists.
-- No duplicated logic: a query, validation rule or HTML fragment has exactly one home (mock-stage exceptions: `USER` constants;
+- No duplicated logic: a query, validation rule or HTML fragment has exactly one home (mock-stage exception:
   the `theme` key check in the header's anti-FOUC script and in `theme.js`, because the first must run before any file loads).
 - A new namespace needs a directory that matches it (`App\Repository\` → `src/Repository/`) or an explicit PSR-4 entry like
   `App\Controller\`, then `composer dump-autoload`. Linux (deployment) is case-sensitive.
@@ -162,7 +172,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
   the footer partial. New nav entries go into `$navItems` in the header partial.
 - CSS only in `public/css/`, no inline styles; use the tokens from `variables.css`. Files, in the order the header links them:
   `variables` (tokens) → `base` (reset, elements) → `layout` (top bar, header, nav, footer) → `components` → `demos` (demos page)
-  → `upload` (start page) → `states` (hover, `:focus-visible`, state classes) → `responsive` (breakpoint `max-width: 48rem`).
+  → `states` (hover, `:focus-visible`, state classes) → `responsive` (breakpoint `max-width: 48rem`).
   Page-specific styles get their own `<page>.css`, linked before `states.css`.
 - Colours only through tokens: `:root` holds the dark (default) values, `html[data-theme="light"]` overrides colour and backdrop tokens only (`--backdrop-image`, `--backdrop-veil`: the page photo in `public/images/` and how strongly it fades into the background).
   A new colour token gets a value in both blocks. The PL/EN switch in the header isn't wired yet.
@@ -170,7 +180,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 
 **HTTP**
 - Status codes: malformed input → 400; not logged in → 401 for `/api/*`, redirect to `/login` for pages; logged in but not allowed → 403;
-  missing record → 404. Today 400, 403 and 404 exist as exceptions (401 comes with the route guards): `/demos/abc` matches no route,
+  missing record → 404. Today 400, 403 and 404 exist as exceptions (401 comes with the first `/api/*` route): `/demos/abc` matches no route,
   `/demos/0` and unknown ids render the 404 error page, a non-string query parameter renders the 400 one.
 - After a successful POST, redirect (Post/Redirect/Get) instead of rendering.
 
@@ -184,7 +194,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
   In JS insert text with `textContent`, not `innerHTML`.
 - Input: cast and whitelist on the server. The client is never a source of user id or role.
 - Every route that changes data needs a CSRF token and a server-side authorization check. The token check runs centrally
-  for every POST (`Csrf::verifyRequest()` in `public/index.php`, `hash_equals`, 403 on failure); authorization comes with the guards.
+  for every POST (`Csrf::verifyRequest()` in `public/index.php`, `hash_equals`, 403 on failure); authorization is the route's `Access` level, checked by `AccessGuard` before the controller (ownership of a record comes with the `demos` table).
   Every POST form includes `partials/csrf-field.html.php`. Future `/api/*` calls send the token in the `X-CSRF-Token` header.
 - Passwords only via `password_hash()` / `password_verify()`. SQL only as prepared statements with bound parameters;
   identifiers (sort column, direction) only from a whitelist.

@@ -9,7 +9,7 @@ $navItems = [
     'training' => ['/training', 'Training'],
 ];
 
-if ($user !== null && $user['role'] === 'ADMIN') {
+if ($user !== null && $user->role === \App\Model\Role::Admin) {
     $navItems['admin'] = ['/admin', 'Admin'];
 }
 ?>
@@ -47,7 +47,6 @@ if ($user !== null && $user['role'] === 'ADMIN') {
     <link rel="stylesheet" href="/css/layout.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/demos.css">
-    <link rel="stylesheet" href="/css/upload.css">
     <link rel="stylesheet" href="/css/states.css">
     <link rel="stylesheet" href="/css/responsive.css">
 </head>
@@ -93,8 +92,8 @@ if ($user !== null && $user['role'] === 'ADMIN') {
 
                 <?php if ($user !== null): ?>
                     <p class="user-chip">
-                        <span class="user-chip__name"><?= $e($user['name']) ?></span>
-                        <span class="user-chip__role"><?= $e($user['role']) ?></span>
+                        <span class="user-chip__name"><?= $e($user->name) ?></span>
+                        <span class="user-chip__role"><?= $e($user->role->value) ?></span>
                     </p>
                     <form method="post" action="/logout">
                         <?php require __DIR__ . '/csrf-field.html.php'; ?>

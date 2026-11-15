@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\CurrentUser;
+
 final class AdminController extends AppController
 {
+    public function __construct(private readonly CurrentUser $currentUser)
+    {
+    }
+
     public function index(): void
     {
         $hasError = isset($_GET['error']);
@@ -13,7 +19,7 @@ final class AdminController extends AppController
         $this->render('admin', [
             'pageTitle' => 'Admin',
             'activeNav' => 'admin',
-            'user' => ['name' => 'admin', 'role' => 'ADMIN'],
+            'user' => $this->currentUser->user(),
             'maps' => [
                 ['name' => 'de_mirage', 'posX' => '-3230', 'posY' => '1713', 'scale' => '5.00', 'demos' => 142],
                 ['name' => 'de_inferno', 'posX' => '-2087', 'posY' => '3870', 'scale' => '4.90', 'demos' => 98],

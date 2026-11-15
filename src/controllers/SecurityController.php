@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Http\Csrf;
+use App\Http\CurrentUser;
 use App\Http\Query;
 use App\Http\Redirect;
 use App\Http\Session;
@@ -24,7 +25,13 @@ final class SecurityController extends AppController
         private readonly AuthService $authService,
         private readonly Session $session,
         private readonly Csrf $csrf,
+        private readonly CurrentUser $currentUser,
     ) {
+    }
+
+    public function home(): void
+    {
+        throw new Redirect($this->currentUser->user() === null ? '/login' : '/demos');
     }
 
     public function login(): void
@@ -74,7 +81,7 @@ final class SecurityController extends AppController
         }
 
         $this->session->regenerate();
-        $this->session->set('user_id', $user->id);
+        $this->session->set(CurrentUser::SESSION_KEY, $user->id);
         $this->csrf->rotate();
 
         throw new Redirect('/demos');

@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\CurrentUser;
+
 final class TrainingController extends AppController
 {
-    private const USER = ['name' => 'nightowl', 'role' => 'USER'];
+    public function __construct(private readonly CurrentUser $currentUser)
+    {
+    }
 
     public function index(): void
     {
         $this->render('training', [
             'pageTitle' => 'Training set',
             'activeNav' => 'training',
-            'user' => self::USER,
+            'user' => $this->currentUser->user(),
             'mapName' => 'de_mirage',
             'demoId' => 1,
             'setName' => 'Mirage — Oct 6',

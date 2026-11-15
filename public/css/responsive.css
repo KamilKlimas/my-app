@@ -38,18 +38,12 @@
     gap: var(--space-3);
   }
 
-  .overview,
-  .steps__list,
-  .upload-card__actions {
+  .overview {
     grid-template-columns: minmax(0, 1fr);
   }
 
   .stats__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .upload-card {
-    padding: var(--space-4);
   }
 
   .live-badge {

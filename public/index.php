@@ -11,7 +11,10 @@ use App\Controller\TrainingController;
 use App\Database\ConnectionFactory;
 use App\Database\ConnectionFailed;
 use App\Database\DatabaseConfig;
+use App\Http\Access;
+use App\Http\AccessGuard;
 use App\Http\Csrf;
+use App\Http\CurrentUser;
 use App\Http\HttpException;
 use App\Http\NotFound;
 use App\Http\Redirect;
@@ -30,21 +33,28 @@ try {
     $csrf->verifyRequest($_SERVER['REQUEST_METHOD'], $_POST);
     $database = (new ConnectionFactory())->create(DatabaseConfig::fromEnvironment(getenv()));
 
-    $authService = new AuthService(new PdoUserRepository($database));
-    $securityController = fn (): SecurityController => new SecurityController($authService, $session, $csrf);
+    $userRepository = new PdoUserRepository($database);
+    $authService = new AuthService($userRepository);
+    $currentUser = new CurrentUser($session, $userRepository);
+    $securityController = fn (): SecurityController => new SecurityController($authService, $session, $csrf, $currentUser);
 
-    $routing = new Routing();
-    $routing->get('/login', $securityController, 'login');
-    $routing->post('/login', $securityController, 'authenticate');
-    $routing->get('/register', $securityController, 'register');
-    $routing->post('/register', $securityController, 'createAccount');
-    $routing->post('/logout', $securityController, 'logout');
-    $routing->get('/demos', DemoController::class, 'index');
-    $routing->get('/demos/{id}', DemoController::class, 'show');
-    $routing->get('/hotspots', HotspotController::class, 'index');
-    $routing->get('/training', TrainingController::class, 'index');
-    $routing->get('/admin', AdminController::class, 'index');
-    $routing->get('/', DemoController::class, 'upload');
+    $demoController = fn (): DemoController => new DemoController($currentUser);
+    $hotspotController = fn (): HotspotController => new HotspotController($currentUser);
+    $trainingController = fn (): TrainingController => new TrainingController($currentUser);
+    $adminController = fn (): AdminController => new AdminController($currentUser);
+
+    $routing = new Routing(new AccessGuard($currentUser));
+    $routing->get('/login', $securityController, 'login', Access::Guest);
+    $routing->post('/login', $securityController, 'authenticate', Access::Guest);
+    $routing->get('/register', $securityController, 'register', Access::Guest);
+    $routing->post('/register', $securityController, 'createAccount', Access::Guest);
+    $routing->post('/logout', $securityController, 'logout', Access::Anyone);
+    $routing->get('/demos', $demoController, 'index', Access::User);
+    $routing->get('/demos/{id}', $demoController, 'show', Access::User);
+    $routing->get('/hotspots', $hotspotController, 'index', Access::User);
+    $routing->get('/training', $trainingController, 'index', Access::User);
+    $routing->get('/admin', $adminController, 'index', Access::Admin);
+    $routing->get('/', $securityController, 'home', Access::Anyone);
 
     $routeFound = $routing->dispatch(
         $_SERVER['REQUEST_METHOD'],

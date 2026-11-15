@@ -69,6 +69,22 @@ final class SessionTest extends TestCase
         $this->assertSame(['csrf' => 'abc'], $data);
     }
 
+    public function testRemoveDeletesOnlyThatKey(): void
+    {
+        $data = ['user_id' => 7, 'csrf' => 'abc'];
+        (new Session($data))->remove('user_id');
+
+        $this->assertSame(['csrf' => 'abc'], $data);
+    }
+
+    public function testRemoveOfMissingKeyLeavesDataUntouched(): void
+    {
+        $data = ['csrf' => 'abc'];
+        (new Session($data))->remove('user_id');
+
+        $this->assertSame(['csrf' => 'abc'], $data);
+    }
+
     public function testSecureFromEnvironmentAcceptsOne(): void
     {
         $this->assertTrue(Session::secureFromEnvironment(['SESSION_SECURE' => '1']));

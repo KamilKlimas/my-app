@@ -85,4 +85,9 @@ final class Session
     {
         $this->data[$key] = $value;
     }
+
+    public function remove(string $key): void
+    {
+        unset($this->data[$key]);
+    }
 }

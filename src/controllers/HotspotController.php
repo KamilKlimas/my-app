@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Http\CurrentUser;
 use App\Http\Query;
 
 final class HotspotController extends AppController
 {
-    private const USER = ['name' => 'nightowl', 'role' => 'USER'];
-
     private const OPTIONS = [
         'map' => [
             'label' => 'Map',
@@ -43,6 +42,10 @@ final class HotspotController extends AppController
 
     private const DEFAULTS = ['map' => 'de_mirage', 'days' => '30', 'issue' => 'all', 'side' => 'both'];
 
+    public function __construct(private readonly CurrentUser $currentUser)
+    {
+    }
+
     public function index(): void
     {
         $query = new Query($_GET);
@@ -60,7 +63,7 @@ final class HotspotController extends AppController
         $this->render('hotspots', [
             'pageTitle' => 'Hotspots',
             'activeNav' => 'hotspots',
-            'user' => self::USER,
+            'user' => $this->currentUser->user(),
             'filters' => $filters,
             'query' => http_build_query($selected),
             'mapName' => $selected['map'],

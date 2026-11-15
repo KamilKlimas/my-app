@@ -14,6 +14,8 @@ final class InMemoryUserRepository implements UserRepository
     /** @var array<string, User> */
     private array $usersByEmail = [];
 
+    public int $findByIdCalls = 0;
+
     public function add(User $user): void
     {
         $this->usersByEmail[strtolower($user->email)] = $user;
@@ -22,6 +24,19 @@ final class InMemoryUserRepository implements UserRepository
     public function findByEmail(string $email): ?User
     {
         return $this->usersByEmail[strtolower($email)] ?? null;
+    }
+
+    public function findById(int $id): ?User
+    {
+        $this->findByIdCalls++;
+
+        foreach ($this->usersByEmail as $user) {
+            if ($user->id === $id) {
+                return $user;
+            }
+        }
+
+        return null;
     }
 
     public function create(string $email, string $name, string $passwordHash, Role $role): void

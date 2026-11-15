@@ -116,7 +116,15 @@ public/index.php → src/Routing.php → controller → service → repository i
                                    public/views (presentation only)
 ```
 
-- Routing runs guards (logged in, role) before the controller; the CSRF check runs earlier, in `public/index.php`.
+- Routing runs the access check before the controller; the CSRF check runs earlier, in `public/index.php`.
+- Route access (M2): every route names an `Access` level (`Anyone`, `Guest`, `User`, `Admin`) as a required argument, so the
+  rule sits next to the URL in `public/index.php` and cannot be forgotten in one action (lab 9 calls `requireLogin()` in each action
+  and does not check roles). `AccessGuard` runs after the route matches and before the controller exists: a guest on a protected
+  URL gets 303 `/login` even for an id that does not exist, so 404 never tells a guest which ids are real. The guard reads the user
+  through `CurrentUser` (session id → `findById()`, once per request); an id whose account is gone is dropped from the session
+  instead of failing every request. Ownership of a record (`owner` below) is a check on the record, not the route,
+  and comes with the `demos` table (M3). Protected pages are not cached: the session sends `Cache-Control: no-store` on every page,
+  so "back" after logout does not show them.
 - Services hold business logic: today `AuthService` (login check, registration); planned: upload checks, diagnosis, scenario generation,
   `.cfg` export, e-mail.
 - Repositories are the only place with SQL, each behind an interface (today `UserRepository` → `PdoUserRepository`).
@@ -137,8 +145,8 @@ public/index.php → src/Routing.php → controller → service → repository i
 - HTTP errors as exceptions (M2): an action, and later a guard or the CSRF check, stops the request by throwing
   `BadRequest`, `Forbidden` or `NotFound`; `public/index.php` catches `HttpException` once and renders the error page.
   A redirect is a thrown `Redirect` (303 See Other, local path only), because `exit` is banned and cannot be tested.
-  Returning a response object instead would change every action and the router. `Unauthorized` (401) comes with the guards,
-  since pages redirect to `/login` and there is no `/api/` yet.
+  Returning a response object instead would change every action and the router. `Unauthorized` (401) comes with the first `/api/*` route,
+  since pages redirect to `/login`.
 
 ## Request flows
 
@@ -170,9 +178,9 @@ transaction → `201` with the new id.
 
 | Method | Path | Access | Purpose |
 |--------|------|--------|---------|
-| GET | `/` | all | redirect to `/demos` or `/login` |
+| GET | `/` | all | redirect to `/demos` or `/login` *(exists)* |
 | GET, POST | `/login`, `/register` | guest | forms |
-| POST | `/logout` | user | ends the session |
+| POST | `/logout` | all | ends the session; a guest just gets a fresh session |
 | GET, POST | `/password/forgot` | guest | send a reset link |
 | GET, POST | `/password/reset/{token:[a-f0-9]{64}}` | guest | set a new password |
 | GET | `/demos` | user | list and upload page |

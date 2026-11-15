@@ -1,5 +1,5 @@
 <?php
-// The one home of the demo upload form. Pages pick the look with $dropzoneClass (dropzone--hero or dropzone--compact).
+// The one home of the demo upload form. Pages pick the look with $dropzoneClass (e.g. dropzone--compact).
 $dropzoneClass = $dropzoneClass ?? '';
 ?>
 <form class="dropzone <?= $e($dropzoneClass) ?>" method="post" action="/demos" enctype="multipart/form-data">

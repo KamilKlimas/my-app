@@ -26,6 +26,17 @@ final class PdoUserRepository implements UserRepository
         return $row === false ? null : $this->mapRow($row);
     }
 
+    public function findById(int $id): ?User
+    {
+        $statement = $this->database->prepare(
+            'SELECT id, email, name, password_hash, role FROM users WHERE id = :id',
+        );
+        $statement->execute(['id' => $id]);
+        $row = $statement->fetch();
+
+        return $row === false ? null : $this->mapRow($row);
+    }
+
     public function create(string $email, string $name, string $passwordHash, Role $role): void
     {
         $statement = $this->database->prepare(

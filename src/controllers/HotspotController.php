@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Http\CurrentUser;
 use App\Http\Query;
+use App\View\View;
 
 final class HotspotController extends AppController
 {
@@ -42,8 +43,10 @@ final class HotspotController extends AppController
 
     private const DEFAULTS = ['map' => 'de_mirage', 'days' => '30', 'issue' => 'all', 'side' => 'both'];
 
-    public function __construct(private readonly CurrentUser $currentUser)
-    {
+    public function __construct(
+        private readonly View $view,
+        private readonly CurrentUser $currentUser,
+    ) {
     }
 
     public function index(): void
@@ -60,8 +63,8 @@ final class HotspotController extends AppController
             $filters[$name] = $filter + ['selected' => $value];
         }
 
-        $this->render('hotspots', [
-            'pageTitle' => 'Hotspots',
+        $this->view->render('hotspots', [
+            'pageTitle' => 'hotspots.title',
             'activeNav' => 'hotspots',
             'user' => $this->currentUser->user(),
             'filters' => $filters,

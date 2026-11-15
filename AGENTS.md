@@ -16,7 +16,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
 
 ## Current state (after M1: foundations; lab 5: light and dark theme)
 
-- Pages render hard-coded mock data defined in the controllers; there is no translation system yet. The header shows the logged-in
+- Pages render hard-coded mock data defined in the controllers. The header shows the logged-in
   user from the database: every page controller gets `CurrentUser` through a factory and passes `'user' => $this->currentUser->user()`.
 - Login works against the database: `GET /login` (`SecurityController::login`) shows the form, `POST /login` (`authenticate`) checks it
   through `AuthService`. Success: `session_regenerate_id(true)`, `user_id` in the session, a new CSRF token, 303 to `/demos`.
@@ -24,7 +24,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   over 72 bytes (bcrypt's limit) fails without a query. The session key is `CurrentUser::SESSION_KEY` (`user_id`).
 - Registration: `GET /register` (`SecurityController::register`) and `POST /register` (`createAccount`) through
   `AuthService::register()`, which holds every rule (e-mail, name 3–32, password 8 characters to 72 bytes, matching confirmation)
-  and returns error codes per field; the controller maps them to Polish text. Errors: 422 with the form, e-mail and name kept.
+  and returns error codes per field; the template translates them (`register.error.<code>`). Errors: 422 with the form, e-mail and name kept.
   Success and a taken e-mail both end with 303 to `/login?registered=1` (no account enumeration); the role is always USER.
   `PdoUserRepository::create()` turns SQLSTATE `23505` into `App\Repository\DuplicateEmail`; there is no `SELECT` before the `INSERT`.
 - `POST /logout` (`SecurityController::logout`, the form in the header) runs `Session::destroy()`: empties the session data,
@@ -40,7 +40,7 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   `HttpOnly`, `SameSite=Lax`, strict mode, `Secure` only with `SESSION_SECURE=1`. It holds the CSRF token and, after login, the user id (`int`).
 - Every POST is checked for a CSRF token in `public/index.php`, right after the session starts and before the database
   (`App\Http\Csrf::verifyRequest()`): a missing or wrong `_csrf` field renders the 403 `error` page, also for unknown URLs.
-  The token (one per session, `bin2hex(random_bytes(32))`) reaches every template as `$csrfToken` from `AppController::render()`,
+  The token (one per session, `bin2hex(random_bytes(32))`) reaches every template as `$csrfToken` from `View::render()`,
   and every POST form includes `partials/csrf-field.html.php`.
 - `public/index.php` opens one `PDO` connection per request (`App\Database\ConnectionFactory` from `DatabaseConfig::fromEnvironment(getenv())`),
   and `SecurityController` uses it through `PdoUserRepository` → `AuthService`. If the database is down, every page renders the `error` page with 503 and the cause goes to `docker compose logs php`.
@@ -64,7 +64,13 @@ Graded university course project (Politechnika Krakowska), built lab by lab:
   (stats, quick upload, table filtered by `?map=` and `?outcome=`). Unknown URLs render the `error` page (404) with the shared partials;
   a malformed query parameter (`?map[]=x`) renders it with 400. Every error status comes from a thrown `HttpException`
   rendered in one place; `Forbidden` (403) is thrown by the CSRF check and by `AccessGuard`; `Redirect` is used by `AccessGuard`, `/`, `POST /login`, `POST /register` and `POST /logout`. `ServiceUnavailable` (503) covers a failed database connection.
-- UI text is hard-coded: the login page is Polish, the other pages English.
+- Translations: `lang/pl.php` and `lang/en.php` are flat arrays of dotted keys (`login.title`); `App\I18n\Translator` loads one
+  and `View::render()` passes it to every template as the closure `$t('key', ['name' => value])` (`{name}` placeholders), next to `$e`
+  and `$lang`. Controllers pass keys, never text (`'pageTitle' => 'demos.title'`). A missing key throws `MissingTranslation`;
+  `TranslatorTest` checks that both files have the same keys. The language (`App\I18n\Locale::resolve()`): a valid `locale` in the
+  session wins, else `Accept-Language` (Polish preferred → `pl`, anything else or no header → `en`). Nothing writes `locale` to
+  the session yet, and the PL/EN buttons aren't wired. Translated so far: header, footer, login, registration, error pages and page titles;
+  the bodies of demos, demo, hotspots, training and admin are still English.
 
 ## Stack and services
 
@@ -114,7 +120,10 @@ public/views/partials/        header.html.php (doctype, <head>, top bar, nav), f
 public/css/                   stylesheets, linked by the header partial
 public/js/                    browser scripts, loaded as modules by the footer partial (theme.js)
 src/Routing.php               App\Routing: get()/post() routes, {param} placeholders, dispatch()
-src/controllers/              App\Controller\*: AppController (render() + $e) and one controller per area
+src/controllers/              App\Controller\*: AppController (empty base type the router checks) and one controller per area
+src/View/                     App\View\View: renders a template with $e, $t, $lang and $csrfToken; built once in index.php
+src/I18n/                     App\I18n\Locale (pl|en, picks the request language), Translator, MissingTranslation
+lang/                         pl.php, en.php: translation catalogues, identical key sets
 src/Http/                     App\Http\Query (typed $_GET access), Session (starts the session, typed $_SESSION access), Csrf (token, POST check), HttpException + BadRequest/Forbidden/NotFound/ServiceUnavailable
                               (400/403/404/503), Redirect (303 to a local path), Access (route levels), AccessGuard (checks them),
                               CurrentUser (the logged-in user from the session id)
@@ -132,7 +141,7 @@ phpunit.xml                   PHPUnit config: suite tests/Unit, strict failure f
 
 ## How a request works
 
-nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `AccessGuard::check()` → `new XController()` → action → `AppController::render()`
+nginx → `public/index.php` → `Routing::dispatch()` (method + regex) → `AccessGuard::check()` → `new XController()` → action → `View::render()`
 → template in `public/views/` with the partials. No route matched → `public/index.php` throws `NotFound`.
 One `try` in `public/index.php` first opens the database connection, then dispatches. It catches `Redirect` (`Location` + 303),
 any `HttpException` and `ConnectionFailed` (as `ServiceUnavailable`) → `DefaultController::error()`,
@@ -143,11 +152,11 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
   is cast to `int` and passed as a **named argument**, so the action parameter must have the same name (`show(int $id)`).
   The first matching route wins; keep `/` last.
 - **Controllers** extend `AppController` and are registered by class name (the router does `new $class()`) or, when they
-  need collaborators, by a factory closure (`fn () => new XController($service)`), called only for the matched route. They end with
+  need collaborators (every page controller needs `View`), by a factory closure (`fn () => new XController($service)`), called only for the matched route. They end with
   `$this->render('<template>', [...])`. Usual variables: `pageTitle` (required by the header), `activeNav`
   (`demos|hotspots|training|admin`), `user` (`?App\Model\User` from `CurrentUser::user()`, `null` hides the nav).
 - **Missing record:** `throw new NotFound();`. A new status gets its own `HttpException` subclass and a title and lead
-  in `DefaultController::PAGES`. `Redirect` accepts only a local path (`/…`, not `//…` or `/\…`), against open redirects.
+  in both catalogues (`error.<status>.title`, `error.<status>.lead`). `Redirect` accepts only a local path (`/…`, not `//…` or `/\…`), against open redirects.
 - **Query parameters** are read through `new Query($_GET)` in the controller and accepted only from a whitelist,
   with a default (`HotspotController`). A non-string value (`?map[]=x`) throws `BadRequest` → 400; an unknown value
   falls back to the default. Read the query before `render()`, otherwise part of the page is sent before the error page.
@@ -189,7 +198,7 @@ which sets the status and renders the `error` page. Throw before `render()`, oth
 
 ## Security (non-negotiable)
 
-- Output: every dynamic value in a template goes through `$e(...)`, the closure `AppController::render()` passes to each template
+- Output: every dynamic value in a template goes through `$e(...)`, the closure `View::render()` passes to each template
   (`htmlspecialchars`, PHP 8 defaults `ENT_QUOTES | ENT_SUBSTITUTE`, UTF-8). Integers may be printed with a `(int)` cast.
   In JS insert text with `textContent`, not `innerHTML`.
 - Input: cast and whitelist on the server. The client is never a source of user id or role.
@@ -212,7 +221,7 @@ Don't scaffold these ahead of time. The change that builds an item moves its rul
 - Database: the remaining tables from `docs/architecture.md`; PDO with prepared statements; Mermaid ERD in the README and a full export in `database/duellab.sql`.
 - Login with USER and ADMIN roles, sessions, CSRF; HTTP exceptions for 400/401/403/404 rendered in one place.
 - Layers Controller → Service → Repository interface, wired by hand (no DI container, service locator or static facades).
-- Translations (`lang/pl.php`, `lang/en.php` via `t('key')`).
+- Translations, rest of step 09: page bodies, the PL/EN switch (`POST /locale`) and `users.locale`.
 - JavaScript modules in `public/js/`, all network calls through one `api.js`; JSON API under `/api/`.
 - Uploads (demos, map radar images), the demo-parsing `worker`, `cron` jobs, e-mail through PHPMailer and Mailpit.
 

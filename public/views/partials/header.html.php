@@ -1,16 +1,16 @@
 <?php
-$lang = $lang ?? 'en';
 $user = $user ?? null;
+$pageTitleParameters = $pageTitleParameters ?? [];
 $activeNav = $activeNav ?? '';
 
 $navItems = [
-    'demos' => ['/demos', 'Demos'],
-    'hotspots' => ['/hotspots', 'Hotspots'],
-    'training' => ['/training', 'Training'],
+    'demos' => ['/demos', 'nav.demos'],
+    'hotspots' => ['/hotspots', 'nav.hotspots'],
+    'training' => ['/training', 'nav.training'],
 ];
 
 if ($user !== null && $user->role === \App\Model\Role::Admin) {
-    $navItems['admin'] = ['/admin', 'Admin'];
+    $navItems['admin'] = ['/admin', 'nav.admin'];
 }
 ?>
 <!doctype html>
@@ -18,7 +18,7 @@ if ($user !== null && $user->role === \App\Model\Role::Admin) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $e($pageTitle) ?> | DuelLab</title>
+    <title><?= $e($t($pageTitle, $pageTitleParameters)) ?> | DuelLab</title>
     <!-- Runs before any stylesheet so the first paint already uses the right theme (no FOUC).
          The toggle itself lives in /js/theme.js; both use the localStorage key "theme". -->
     <script>
@@ -51,11 +51,11 @@ if ($user !== null && $user->role === \App\Model\Role::Admin) {
     <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
-    <aside class="topbar" aria-label="System status">
+    <aside class="topbar" aria-label="<?= $e($t('layout.status.label')) ?>">
         <ul class="topbar__list">
-            <li>CS2 protocol: tick-64/sub-tick</li>
-            <li>Match pipeline: <strong class="topbar__ok">online</strong></li>
-            <li>Net: 0% loss</li>
+            <li><?= $e($t('layout.status.protocol')) ?></li>
+            <li><?= $e($t('layout.status.pipeline')) ?> <strong class="topbar__ok"><?= $e($t('layout.status.online')) ?></strong></li>
+            <li><?= $e($t('layout.status.net')) ?></li>
         </ul>
     </aside>
 
@@ -63,17 +63,17 @@ if ($user !== null && $user->role === \App\Model\Role::Admin) {
         <div class="site-header__inner">
             <a class="brand" href="/">
                 <strong class="brand__name">Duel<span class="brand__accent">Lab</span></strong>
-                <small class="brand__tag">Analytics Hub</small>
+                <small class="brand__tag"><?= $e($t('layout.brand.tag')) ?></small>
             </a>
 
             <?php if ($user !== null): ?>
-                <button type="button" class="menu-toggle" aria-label="Open menu" aria-expanded="false">Menu</button>
-                <nav class="main-nav" aria-label="Main">
+                <button type="button" class="menu-toggle" aria-label="<?= $e($t('layout.menu.open')) ?>" aria-expanded="false"><?= $e($t('layout.menu')) ?></button>
+                <nav class="main-nav" aria-label="<?= $e($t('layout.nav.label')) ?>">
                     <ul class="main-nav__list">
                         <?php foreach ($navItems as $key => [$href, $label]): ?>
                             <li>
                                 <a class="main-nav__link" href="<?= $e($href) ?>"<?= $key === $activeNav ? ' aria-current="page"' : '' ?>>
-                                    <?= $e($label) ?>
+                                    <?= $e($t($label)) ?>
                                 </a>
                             </li>
                         <?php endforeach; ?>
@@ -82,22 +82,25 @@ if ($user !== null && $user->role === \App\Model\Role::Admin) {
             <?php endif; ?>
 
             <div class="site-header__tools">
-                <div class="lang-switch" role="group" aria-label="Language">
+                <div class="lang-switch" role="group" aria-label="<?= $e($t('layout.language')) ?>">
                     <button type="button" class="lang-switch__button" aria-pressed="<?= $lang === 'pl' ? 'true' : 'false' ?>">PL</button>
                     <button type="button" class="lang-switch__button" aria-pressed="<?= $lang === 'en' ? 'true' : 'false' ?>">EN</button>
                 </div>
-                <button type="button" class="icon-button theme-toggle" aria-pressed="false" aria-label="Switch to dark theme" title="Change theme">
-                    <span class="theme-toggle__label">Dark</span>
+                <button type="button" class="icon-button theme-toggle" aria-pressed="false"
+                        aria-label="<?= $e($t('layout.theme.to_dark')) ?>" title="<?= $e($t('layout.theme.title')) ?>"
+                        data-label-dark="<?= $e($t('layout.theme.dark')) ?>" data-label-light="<?= $e($t('layout.theme.light')) ?>"
+                        data-aria-dark="<?= $e($t('layout.theme.to_dark')) ?>" data-aria-light="<?= $e($t('layout.theme.to_light')) ?>">
+                    <span class="theme-toggle__label"><?= $e($t('layout.theme.dark')) ?></span>
                 </button>
 
                 <?php if ($user !== null): ?>
                     <p class="user-chip">
                         <span class="user-chip__name"><?= $e($user->name) ?></span>
-                        <span class="user-chip__role"><?= $e($user->role->value) ?></span>
+                        <span class="user-chip__role"><?= $e($t('role.' . strtolower($user->role->value))) ?></span>
                     </p>
                     <form method="post" action="/logout">
                         <?php require __DIR__ . '/csrf-field.html.php'; ?>
-                        <button type="submit" class="link-button">Log out</button>
+                        <button type="submit" class="link-button"><?= $e($t('layout.logout')) ?></button>
                     </form>
                 <?php endif; ?>
             </div>

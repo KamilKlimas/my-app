@@ -35,10 +35,10 @@ function syncThemeToggle() {
 
     const isDark = getCurrentTheme() === 'dark';
     themeToggle.setAttribute('aria-pressed', String(isDark));
-    themeToggle.setAttribute('aria-label', isDark ? 'Switch to light theme' : 'Switch to dark theme');
+    themeToggle.setAttribute('aria-label', isDark ? themeToggle.dataset.ariaLight : themeToggle.dataset.ariaDark);
 
     if (themeLabel) {
-        themeLabel.textContent = isDark ? 'Light' : 'Dark';
+        themeLabel.textContent = isDark ? themeToggle.dataset.labelLight : themeToggle.dataset.labelDark;
     }
 }
 

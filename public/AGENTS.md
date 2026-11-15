@@ -9,7 +9,9 @@ Entry point and frontend rules. They add to the root `AGENTS.md`; if the two eve
 ## Views
 
 - Views in `views/` only present data prepared by a controller: no SQL, no business decisions.
-- Escape every dynamic value with `$e()`, which `AppController::render()` passes to each view. Never call `htmlspecialchars()` in a view.
+- Escape every dynamic value with `$e()`, which `View::render()` passes to each view. Never call `htmlspecialchars()` in a view.
+- Every user-facing text comes from `$t('key')` (catalogues in `lang/`, new keys go into both `pl.php` and `en.php`), printed as `$e($t('key'))`.
+  Controllers pass keys; texts that JavaScript swaps go into `data-*` attributes (see the theme button).
 - Repeated parts (header, navigation, footer, the demo upload form) live in `views/partials/` and are included, never copied.
 - Semantic HTML. Every form field has a `<label>`, images have `alt`, everything works with a keyboard.
 - Every POST form includes the CSRF field right after `<form>`: `<?php require __DIR__ . '/partials/csrf-field.html.php'; ?>`
@@ -22,6 +24,5 @@ Entry point and frontend rules. They add to the root `AGENTS.md`; if the two eve
 - Every view works on phone, tablet and desktop without horizontal scrolling.
 
 <!-- TODO: once they exist, add:
-- where translations live (all user-facing text in Polish and English, including validation and error messages; new keys go into both)
 - where JavaScript modules live, and that network calls use fetch with JSON, send the CSRF token in the `X-CSRF-Token` header, and show loading and error states
 -->

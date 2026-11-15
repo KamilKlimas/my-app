@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Http\CurrentUser;
 use App\Http\NotFound;
 use App\Http\Query;
+use App\View\View;
 
 final class DemoController extends AppController
 {
@@ -35,16 +36,18 @@ final class DemoController extends AppController
 
     private const OUTCOMES = ['all' => 'All outcomes', 'win' => 'Wins', 'loss' => 'Losses'];
 
-    public function __construct(private readonly CurrentUser $currentUser)
-    {
+    public function __construct(
+        private readonly View $view,
+        private readonly CurrentUser $currentUser,
+    ) {
     }
 
     public function index(): void
     {
         $filters = $this->selectedFilters();
 
-        $this->render('demos', [
-            'pageTitle' => 'My demos',
+        $this->view->render('demos', [
+            'pageTitle' => 'demos.title',
             'activeNav' => 'demos',
             'user' => $this->currentUser->user(),
             'stats' => self::STATS + [
@@ -136,8 +139,9 @@ final class DemoController extends AppController
             }
         }
 
-        $this->render('demo', [
-            'pageTitle' => $demo['map'],
+        $this->view->render('demo', [
+            'pageTitle' => 'demo.title',
+            'pageTitleParameters' => ['map' => $demo['map']],
             'activeNav' => 'demos',
             'user' => $this->currentUser->user(),
             'demo' => $demo,

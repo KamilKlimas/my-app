@@ -17,13 +17,17 @@ ma poziom dostępu (akapit „Dostęp” pod tabelą tras). Nagłówek pokazuje 
 systemowego: w konsoli `localStorage.removeItem('theme'); location.reload();`. Pozostałe formularze (upload demo, panel admina) wysyłają żądania
 do tras, które jeszcze nie istnieją, więc kończą się odpowiedzią 404. Każdy POST bez poprawnego tokenu CSRF (ukryte pole `_csrf`) dostaje 403.
 
+**Język (PL/EN):** teksty pochodzą z katalogów `lang/pl.php` i `lang/en.php`. Język wybiera przeglądarka (`Accept-Language`):
+polski → PL, każdy inny albo brak nagłówka → EN. Przetłumaczone są nagłówek, stopka, logowanie, rejestracja i strony błędów;
+treść pozostałych stron jest jeszcze po angielsku, a przyciski PL/EN jeszcze nie działają. Test: `curl -H 'Accept-Language: pl' http://localhost:8080/login`.
+
 ## Funkcje
 
 | Trasa              | Kontroler i akcja              | Co pokazuje                                    |
 |--------------------|--------------------------------|------------------------------------------------|
 | `/`                | `SecurityController::home`     | przekierowanie: zalogowany → `/demos`, gość → `/login` |
-| `/login`           | `SecurityController::login`    | formularz logowania (po polsku); `?registered=1` pokazuje komunikat po rejestracji |
-| `/register`        | `SecurityController::register` | formularz rejestracji (po polsku)              |
+| `/login`           | `SecurityController::login`    | formularz logowania; `?registered=1` pokazuje komunikat po rejestracji |
+| `/register`        | `SecurityController::register` | formularz rejestracji                          |
 | `POST /register`   | `SecurityController::createAccount` | nowe konto z rolą USER → 303 na `/login?registered=1`; błędne pola → 422 z komunikatem przy polu; zajęty e-mail kończy się tak samo jak sukces (nie zdradza, kto ma konto) |
 | `POST /login`      | `SecurityController::authenticate` | logowanie: sukces → 303 na `/demos`, złe dane → 422 z jednym ogólnym komunikatem |
 | `POST /logout`     | `SecurityController::logout`   | wylogowanie: niszczy sesję i ciasteczko, 303 na `/login` |
@@ -138,7 +142,7 @@ Test kończy się porażką także wtedy, gdy kod wywoła warning, notice albo d
 
 ## Zasady developmentu
 
-- Nazwy techniczne w kodzie po angielsku; tekst interfejsu na razie zapisany na sztywno.
+- Nazwy techniczne w kodzie po angielsku; tekst interfejsu tylko przez `$t('klucz')`, nowy klucz w obu plikach `lang/`.
 - Każda wartość dynamiczna w szablonie przechodzi przez `$e(...)` (`htmlspecialchars`).
 - Sekrety tylko w `.env`, którego nie commitujemy.
 - Jeden commit = jedna logiczna zmiana, np. `feat(css): add hover and focus-visible states`.
@@ -155,6 +159,7 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   ├── nginx/              # obraz i konfiguracja nginx
 │   └── php/                # obraz PHP-FPM, entrypoint (composer install)
 ├── docs/                   # opis produktu, architektura, roadmapa, kryteria oceny
+├── lang/                   # katalogi tłumaczeń pl.php i en.php (te same klucze)
 ├── public/                 # document root nginx
 │   ├── css/                # variables → base → layout → components → demos → states → responsive
 │   ├── js/                 # moduły przeglądarki (theme.js)
@@ -162,13 +167,15 @@ Pełne konwencje i zasady dla agentów AI: [AGENTS.md](AGENTS.md).
 │   └── views/              # szablony stron + partials/ (header, footer, upload-form, csrf-field)
 ├── src/
 │   ├── controllers/        # App\Controller\*: AppController i kontrolery obszarów
+│   ├── I18n/               # Locale (wybór języka), Translator (klucz → tekst)
 │   ├── Http/               # Query (odczyt $_GET), Session (start sesji, odczyt/zapis), Csrf (token, sprawdzanie POST), wyjątki HTTP (400/403/404/503), Redirect (303)
 │   ├── Database/           # DatabaseConfig (zmienne DB_*), ConnectionFactory (PDO)
 │   ├── Model/              # User, Role: obiekty danych bez SQL
 │   ├── Repository/         # UserRepository (interfejs), PdoUserRepository: jedyne miejsce z SQL
 │   ├── Service/            # AuthService: sprawdzenie e-maila i hasła
+│   ├── View/               # View: renderuje szablon z $e, $t, $lang i tokenem CSRF
 │   └── Routing.php         # router GET/POST z parametrami {param}, kontrolery z klasy albo fabryki
-├── tests/Unit/             # testy PHPUnit (router, Query, Session, Csrf, wyjątki HTTP, Redirect, DatabaseConfig, AuthService)
+├── tests/Unit/             # testy PHPUnit (router, Query, Session, Csrf, wyjątki HTTP, Redirect, DatabaseConfig, AuthService, Locale, Translator)
 ├── composer.json           # autoloading PSR-4, PHPUnit jako zależność dev
 ├── docker-compose.yaml     # usługi server, php, db, mailpit, pgadmin-wdpai
 ├── phpunit.xml             # konfiguracja testów

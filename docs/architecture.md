@@ -63,10 +63,10 @@ Services talk over the `pg-network` network by service name, so the app reaches 
 - Checked once for every POST in `public/index.php`, right after the session starts and before the database and dispatch
   (`Csrf::verifyRequest()`): "every POST" has no exceptions, and a check inside each action is easy to forget.
   A missing, empty, non-string or wrong token → `Forbidden` (403 page). Compared with `hash_equals()` (constant time), never `===`.
-- Templates get the token as `$csrfToken` from `AppController::render()`, next to `$e`, and print it only through
-  `partials/csrf-field.html.php`. This is a deliberate hidden dependency on the session in the base controller: every POST form
-  on every page needs the token, including the error page (logout form in the header), and injecting it into every controller would
-  add a constructor and a factory per controller with no new behaviour. Frameworks do the same (Laravel `@csrf`, Twig `csrf_token()`).
+- Templates get the token as `$csrfToken` from `View::render()`, next to `$e`, and print it only through
+  `partials/csrf-field.html.php`. Until M2 step 09 the base controller read it through `new Session($_SESSION)`; that hidden dependency
+  went away with the translator, which also needs per-request state. Now `View` gets `Csrf` and `Translator` in `public/index.php`
+  and every page controller gets `View` through its factory.
 - Consequences: a POST to an unknown URL without a token is 403, not 404. An upload larger than `post_max_size` empties `$_POST`,
   so it ends as 403 instead of "file too large"; the upload step (M4) has to handle that.
 - `/api/*` (M3): the token goes in the `X-CSRF-Token` header instead of a form field.
@@ -97,8 +97,8 @@ Services talk over the `pg-network` network by service name, so the app reaches 
   e-mail `FILTER_VALIDATE_EMAIL` and at most 254 characters; name 3–32 letters, digits, space, `.`, `-`, `_` (32 = the column);
   password at least 8 characters with no composition rules (NIST SP 800-63B, 5.1.1) and at most 72 bytes (bcrypt);
   the confirmation field must match. HTML `required`/`minlength` only mirror them for convenience.
-- The service returns error codes per field (`email_invalid`, ...), not text, so translations (M2 step 09) replace only the
-  code → text map in `SecurityController`. Errors re-render the form with 422; e-mail and name are kept, passwords never.
+- The service returns error codes per field (`email_invalid`, ...), not text, and the template prints
+  `$t('register.error.<code>')`. Errors re-render the form with 422; e-mail and name are kept, passwords never.
 - The role is always `Role::User`, set in the service; the request's fields are never read for it.
 - No `SELECT` before the `INSERT`: two requests could both see the e-mail as free. The unique index on `LOWER(email)` is the only
   guard; `PdoUserRepository::create()` turns SQLSTATE `23505` into `DuplicateEmail` (the only unique constraint on `users`

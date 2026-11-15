@@ -10,18 +10,12 @@ use App\Http\Query;
 use App\Http\Redirect;
 use App\Http\Session;
 use App\Service\AuthService;
+use App\View\View;
 
 final class SecurityController extends AppController
 {
-    private const array REGISTRATION_ERRORS = [
-        'email_invalid' => 'Podaj poprawny adres e-mail (do 254 znaków).',
-        'name_invalid' => 'Nazwa: 3–32 znaki, litery, cyfry, spacja, kropka, myślnik lub podkreślnik.',
-        'password_too_short' => 'Hasło musi mieć co najmniej 8 znaków.',
-        'password_too_long' => 'Hasło jest za długie (najwyżej 72 bajty, czyli ok. 72 znaki bez polskich liter).',
-        'password_mismatch' => 'Hasła nie są takie same.',
-    ];
-
     public function __construct(
+        private readonly View $view,
         private readonly AuthService $authService,
         private readonly Session $session,
         private readonly Csrf $csrf,
@@ -37,7 +31,7 @@ final class SecurityController extends AppController
     public function login(): void
     {
         $registered = (new Query($_GET))->string('registered', '') === '1';
-        $this->renderForm('', null, $registered ? 'Rejestracja przyjęta. Możesz się zalogować.' : null);
+        $this->renderForm('', null, $registered ? 'login.registered' : null);
     }
 
     public function register(): void
@@ -75,7 +69,7 @@ final class SecurityController extends AppController
 
         if ($user === null) {
             http_response_code(422);
-            $this->renderForm($email, 'Nieprawidłowy e-mail lub hasło.');
+            $this->renderForm($email, 'login.error.invalid_credentials');
 
             return;
         }
@@ -94,26 +88,24 @@ final class SecurityController extends AppController
         throw new Redirect('/login');
     }
 
-    private function renderForm(string $email, ?string $error, ?string $notice = null): void
+    private function renderForm(string $email, ?string $errorKey, ?string $noticeKey = null): void
     {
-        $this->render('login', [
-            'pageTitle' => 'Logowanie',
-            'lang' => 'pl',
+        $this->view->render('login', [
+            'pageTitle' => 'login.title',
             'email' => $email,
-            'error' => $error,
-            'notice' => $notice,
+            'errorKey' => $errorKey,
+            'noticeKey' => $noticeKey,
         ]);
     }
 
     /** @param array<string, string> $errorCodes */
     private function renderRegistrationForm(string $email, string $name, array $errorCodes): void
     {
-        $this->render('register', [
-            'pageTitle' => 'Rejestracja',
-            'lang' => 'pl',
+        $this->view->render('register', [
+            'pageTitle' => 'register.title',
             'email' => $email,
             'name' => $name,
-            'errors' => array_map(fn (string $code): string => self::REGISTRATION_ERRORS[$code], $errorCodes),
+            'errors' => $errorCodes,
         ]);
     }
 }

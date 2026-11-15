@@ -5,19 +5,22 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Http\CurrentUser;
+use App\View\View;
 
 final class AdminController extends AppController
 {
-    public function __construct(private readonly CurrentUser $currentUser)
-    {
+    public function __construct(
+        private readonly View $view,
+        private readonly CurrentUser $currentUser,
+    ) {
     }
 
     public function index(): void
     {
         $hasError = isset($_GET['error']);
 
-        $this->render('admin', [
-            'pageTitle' => 'Admin',
+        $this->view->render('admin', [
+            'pageTitle' => 'admin.title',
             'activeNav' => 'admin',
             'user' => $this->currentUser->user(),
             'maps' => [

@@ -20,9 +20,12 @@ use App\Http\NotFound;
 use App\Http\Redirect;
 use App\Http\ServiceUnavailable;
 use App\Http\Session;
+use App\I18n\Locale;
+use App\I18n\Translator;
 use App\Repository\PdoUserRepository;
 use App\Routing;
 use App\Service\AuthService;
+use App\View\View;
 
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -30,18 +33,26 @@ try {
     $session = Session::start(Session::secureFromEnvironment(getenv()));
     $csrf = new Csrf($session);
     $csrf->ensureToken();
+    $locale = Locale::resolve($session->string(Locale::SESSION_KEY), $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? null);
+    $view = new View(Translator::forLocale($locale), $csrf);
     $csrf->verifyRequest($_SERVER['REQUEST_METHOD'], $_POST);
     $database = (new ConnectionFactory())->create(DatabaseConfig::fromEnvironment(getenv()));
 
     $userRepository = new PdoUserRepository($database);
     $authService = new AuthService($userRepository);
     $currentUser = new CurrentUser($session, $userRepository);
-    $securityController = fn (): SecurityController => new SecurityController($authService, $session, $csrf, $currentUser);
+    $securityController = fn (): SecurityController => new SecurityController(
+        $view,
+        $authService,
+        $session,
+        $csrf,
+        $currentUser,
+    );
 
-    $demoController = fn (): DemoController => new DemoController($currentUser);
-    $hotspotController = fn (): HotspotController => new HotspotController($currentUser);
-    $trainingController = fn (): TrainingController => new TrainingController($currentUser);
-    $adminController = fn (): AdminController => new AdminController($currentUser);
+    $demoController = fn (): DemoController => new DemoController($view, $currentUser);
+    $hotspotController = fn (): HotspotController => new HotspotController($view, $currentUser);
+    $trainingController = fn (): TrainingController => new TrainingController($view, $currentUser);
+    $adminController = fn (): AdminController => new AdminController($view, $currentUser);
 
     $routing = new Routing(new AccessGuard($currentUser));
     $routing->get('/login', $securityController, 'login', Access::Guest);
@@ -67,7 +78,7 @@ try {
 } catch (Redirect $redirect) {
     header('Location: ' . $redirect->path(), true, 303);
 } catch (HttpException $error) {
-    (new DefaultController())->error($error);
+    (new DefaultController($view))->error($error);
 } catch (ConnectionFailed) {
-    (new DefaultController())->error(new ServiceUnavailable());
+    (new DefaultController($view))->error(new ServiceUnavailable());
 }

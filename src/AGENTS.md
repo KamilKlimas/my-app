@@ -36,7 +36,6 @@ Rules for login, sessions, CSRF, SQL and uploads apply once those parts exist (s
 - Logout destroys the session and expires the cookie.
 - Every POST, PUT, PATCH and DELETE request checks a CSRF token. Today `App\Http\Csrf::verifyRequest()` does it for every POST
   in `public/index.php`, before dispatch; actions don't check it themselves. Compare tokens only with `hash_equals()`.
-- `AppController::render()` is the one other place that wraps `$_SESSION` (`new Session($_SESSION)`), to hand the token to templates.
 
 ## Data, files and permissions
 

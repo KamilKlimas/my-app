@@ -5,17 +5,20 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Http\CurrentUser;
+use App\View\View;
 
 final class TrainingController extends AppController
 {
-    public function __construct(private readonly CurrentUser $currentUser)
-    {
+    public function __construct(
+        private readonly View $view,
+        private readonly CurrentUser $currentUser,
+    ) {
     }
 
     public function index(): void
     {
-        $this->render('training', [
-            'pageTitle' => 'Training set',
+        $this->view->render('training', [
+            'pageTitle' => 'training.title',
             'activeNav' => 'training',
             'user' => $this->currentUser->user(),
             'mapName' => 'de_mirage',
